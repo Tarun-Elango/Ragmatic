@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     const { username, email } = req.body;
     const existingUser = await User.findOne({username})
       if (existingUser){
-        console.error(error);
+        
         res.status(400).json({error:'user already exists'})
       } else {
         try {
