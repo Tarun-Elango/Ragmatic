@@ -1,0 +1,941 @@
+Department of Informatics
+
+Master Program in Informatics:
+Artificial Intelligence
+Abraham Bernstein
+
+9/25/23
+
+Page 1
+
+Table of contents
+Department of Informatics
+
+§ About IfI/Professors
+§ General Information
+§ Structure of MSc Programs: Compulsory Module, Master’s Project, Core Elective, Thesis
+§ MSc: Artificial Intelligence
+§ Hints
+§ Questions/Whom to contact
+§ Library
+§ Welcome event for new Master’s students with major Informatics
+
+9/25/23
+
+Page 2
+
+IfI: The Department of Informatics
+Department of Informatics
+
+–
+
+Founded in 1970 (IfI = Institut für Informatik)
+
+–
+
+Part of the Faculty of Business, Economics and Informatics
+
+–
+
+Focus on human-centered informatics
+
+–
+
+19 Professors, 130 PhD students and Post-Docs
+
+–
+
+500 Bachelorʼs students
+
+–
+
+520 Masterʼs students
+
+–
+
+Campus Oerlikon
+
+You!
+9/25/23
+
+Page 3
+
+IfI Professors
+Department of Informatics
+Professors and Research Groups
+Alberto Bacchelli
+
+Jürgen Bernard
+
+Abraham Bernstein
+
+Michael Böhlen
+
+Thomas Fritz
+
+Zurich
+Empirical
+Software Engineering
+Team
+
+Interactive
+Visual
+Data
+Analysis Group
+
+Dynamic and
+Distributed
+Information
+Systems Group
+
+DataBase
+Technology
+Group
+
+Human
+Aspects of
+Software
+Engineering
+
+Harald Gall
+
+Manuel Günther
+
+Anikó Hannák
+
+Lorenz Hilty
+
+Elaine Huang
+
+Software
+Evolution and
+Architecture
+Lab
+
+Artificial
+Intelligence and
+Machine
+Learning Group
+
+Social
+Computing
+Group
+
+Informatics and
+Sustainability
+Research Group
+
+Zurich
+People
+and
+Computing Lab
+
+Dan Olteanu
+
+Renato Pajarola
+
+Davide Scaramuzza
+
+Ingo Scholtes
+
+Gerhard Schwabe
+
+Data
+Systems and
+Theory Group
+
+Visualization and
+MultiMedia
+Lab
+
+Robotics and
+Perception
+Group
+
+Data
+Analytics
+Group
+
+Information
+Management
+Research
+Group
+
+Sven Seuken
+
+Burkhard Stiller
+
+Claudio Tessone
+
+Martin Volk
+
+Computation and
+Economics Research
+Group
+
+Communication
+Systems
+Group
+
+Blockchain and
+Distributed
+Ledger
+Technologies
+
+Computational
+Linguistics
+
+9/25/23
+
+Page 4
+
+General Information Online
+Department of Informatics
+
+Deanʼs Office: https://www.oec.uzh.ch/en/studies.html
+Ø Study Regulations, Admission, Enrollment, Changing Programs, Course Booking, Important Dates,
+Petitions/Appeals, …
+IfI: https://www.ifi.uzh.ch/en/studies/msc-info.html
+Ø Specific to Informatics: Fact Sheets (legally binding!),
+Topics/Professors, Tutors/TAs, also these slides for later reference
+Please read the regulations and fact sheets!
+The presentations held at the Facultyʼs Master Welcome Day
+are available from:
+https://www.oec.uzh.ch/en/studies/events/mwd.html
+9/25/23
+
+Page 5
+
+Structure of the MSc Programs
+Department of Informatics
+
+90 ECTS credits
+
+Five Major MSc study programs
+
+All programs comprise…
+–
+
+a compulsory module
+
+–
+
+a Masterʼs Project (group work!)
+
+–
+
+modules from core/elective areas
+
+–
+
+a Masterʼs Thesis at the end
+
+Information
+Systems
+
+Software
+Systems
+
+People-Oriented
+Computing
+
+Artificial
+Intelligence
+
+Data Science
+
+IS
+
+SOSY
+
+POC
+
+AI
+
+DS
+
+Compulsory
+module
+6 ECTS
+
+Compulsory
+module
+6 ECTS
+
+Compulsory
+module
+6 ECTS
+
+Compulsory
+module
+6 ECTS
+
+Compulsory
+module
+6 ECTS
+
+Core elective
+area
+18 ECTS
+
+Core elective
+area
+18 ECTS
+
+Core elective
+area
+18 ECTS
+
+Core elective
+area
+18 ECTS
+
+Master’s
+thesis
+30 ECTS
+
+Master’s
+thesis
+30 ECTS
+
+Master’s
+thesis
+30 ECTS
+
+Master’s
+thesis
+30 ECTS
+
+Master’s project
+15 ECTS
+Core elective
+area
+18 ECTS
+
+More on these components
+on the next slides…
+
+INF elective area
+15 ECTS
+WWF elective area
+6 ECTS
+
+Master’s
+thesis
+30 ECTS
+9/25/23
+
+Page 6
+
+Compulsory Module
+Department of Informatics
+
+This course
+Advanced Topics in Artificial Intelligence
+–
+
+Time: Wednesdays 8:15 -12:00h
+
+–
+
+Room: BIN 1.B.01
+
+–
+
+Grading
+
+–
+
+–
+
+–
+
+Final Exam: Wednesday, 26.01.2023, 14:00-16:00 BYOD! à Location to be announced
+
+–
+
+Practice Exam (TBA)
+
+–
+
+Assignments (20%)
+
+–
+
+Active participation to the evaluation event on the 14.12. and 21.12.
+
+Prerequisites:
+–
+
+General: Calculus, Linear Algebra, Probability Theory, Design and Analysis of Algorithms
+
+–
+
+You have taken an intro class on AI (roughly, AIMA 4th Ed., chapters 1-18)
+
+–
+
+You are familiar with basic Data Mining / Machine Learning techniques
+
+Content:
+–
+
+9/25/23
+
+Knowledge in AI, Large-scale AI, Collective Intelligence, AI & Society
+
+Page 7
+
+Masterʼs Project
+Department of Informatics
+
+The Masterʼs Project…
+–
+
+is a group project (= min. 2 students)
+
+–
+
+is an intensive and demanding project worth 15 ECTS credits
+
+–
+
+best time: During semester break
+
+–
+
+max. 12 months to complete
+
+–
+
+must be supervised by an IfI professor
+
+→ Check the fact sheet!
+IfI organizes a Masterʼs Project Market each semester
+→ Some open projects are presented and you can find peers
+9/25/23
+
+Page 8
+
+Elective Areas
+Department of Informatics
+
+90 ECTS credits
+
+Five Major MSc study programs
+
+Core elective area
+
+Information
+Systems
+
+Software
+Systems
+
+People-Oriented
+Computing
+
+Artificial
+Intelligence
+
+Data Science
+
+Specific to your Major study program
+(IS, SOSY, POC, AI, or DS; see next slide).
+
+IS
+
+SOSY
+
+POC
+
+AI
+
+DS
+
+Compulsory
+module
+6 ECTS
+
+Compulsory
+module
+6 ECTS
+
+Compulsory
+module
+6 ECTS
+
+Compulsory
+module
+6 ECTS
+
+Compulsory
+module
+6 ECTS
+
+Core elective
+area
+18 ECTS
+
+Core elective
+area
+18 ECTS
+
+Core elective
+area
+18 ECTS
+
+Core elective
+area
+18 ECTS
+
+Master’s
+thesis
+30 ECTS
+
+Master’s
+thesis
+30 ECTS
+
+Master’s
+thesis
+30 ECTS
+
+Master’s
+thesis
+30 ECTS
+
+INF elective area
+All modules offered by IfI on the Masterʼs level
+(definition in the Study Regulations, p. 31)
+
+Master’s project
+15 ECTS
+Core elective
+area
+18 ECTS
+
+WWF elective area
+
+INF elective area
+15 ECTS
+
+All modules offered by WWF on the Masterʼs level
+(definition in the Study Regulations, p. 31)
+
+WWF elective area
+6 ECTS
+
+Master’s
+thesis
+30 ECTS
+9/25/23
+
+Page 9
+
+AI Major – Core Electives and Instructors
+Department of Informatics
+
+Advanced Machine Learning (from FS22)
+Advanced Techniques of Machine Translation
+Algorithmic Game Theory and Mechanism Design*
+Combinatorial Algorithms
+Computer Graphics
+Deep Learning
+Essentials in Text and Speech Processing
+Machine Learning for Natural Language Processing 1
+Network Science
+Randomized Algorithms
+
+Lena Jäger
+Rico Sennrich
+Sven Seuken
+Alexander Souza
+Renato Pajarola
+Manuel Günther
+Mathias Müller
+Simone Clematide
+Claudio Tessone
+Alexander Souza
+
+Statistical Foundations for Finance
+(Mathematical and Computational Statistics with a View Towards Finance and Risk Management)
+
+Marc Paolella
+
+Vision Algorithms for Mobile Robotics
+Real Analysis I
+
+Davide Scaramuzza
+Marc Paolella
+
+9/25/23
+
+Page 10
+
+Masterʼs Thesis
+Department of Informatics
+
+90 ECTS credits
+
+Five Major MSc study programs
+
+The Masterʼs Thesis…
+
+Information
+Systems
+
+Software
+Systems
+
+People-Oriented
+Computing
+
+Artificial
+Intelligence
+
+Data Science
+
+IS
+
+SOSY
+
+POC
+
+AI
+
+DS
+
+Compulsory
+module
+6 ECTS
+
+Compulsory
+module
+6 ECTS
+
+Compulsory
+module
+6 ECTS
+
+Compulsory
+module
+6 ECTS
+
+Compulsory
+module
+6 ECTS
+
+Core elective
+area
+18 ECTS
+
+Core elective
+area
+18 ECTS
+
+Core elective
+area
+18 ECTS
+
+Core elective
+area
+18 ECTS
+
+Master’s
+thesis
+30 ECTS
+
+Master’s
+thesis
+30 ECTS
+
+Master’s
+thesis
+30 ECTS
+
+Master’s
+thesis
+30 ECTS
+
+–
+
+must be written in your Major area
+
+–
+
+is a full-time endeavor worth 30 ECTS credits
+(i.e., no significant side jobs or other study activities possible)
+
+–
+
+max. 6 months to complete
+
+INF elective area
+15 ECTS
+
+–
+
+can only be started once the Masterʼs Project has been successfully
+completed
+
+WWF elective area
+6 ECTS
+
+–
+
+must be supervised by an IfI professor
+
+Master’s project
+15 ECTS
+Core elective
+area
+18 ECTS
+
+Master’s
+thesis
+30 ECTS
+
+→ Check the fact sheet!
+→ Find topics on the IfI website (check the individual group pages) or contact the groups directly.
+
+9/25/23
+
+Page 11
+
+Further Modules
+Department of Informatics
+
+Seminar
+
+Independent Study
+
+–
+
+one seminar is mandatory
+
+–
+
+–
+
+recommended from 2nd semester
+
+→ Check the fact sheet!
+
+–
+
+check the Course Catalogue early and register for
+the seminar within the seminar’s application deadline
+Note: this deadline is shorter than the regular module booking deadline!
+
+optional module
+
+External Modules
+–
+
+ETH: https://www.oec.uzh.ch/en/studies/credits/external-eth.html
+
+–
+
+Mobility within Switzerland: https://www.uzh.ch/cmsssl/en/studies/application/chmobilityout.html
+
+–
+
+International exchange: https://www.int.uzh.ch/en/out.html
+
+–
+
+Partner universities: https://www.oec.uzh.ch/en/international/engagement.html
+
+9/25/23
+
+Page 12
+
+Minor
+Department of Informatics
+
+Available Minor programs are listed in the Course Catalogue:
+https://studentservices.uzh.ch/uzh/anonym/vvz/index.html
+Ø Master of Science UZH in Informatics (RVO22) > Minor 30
+Note: Modules in the „Minor area Informatics (INF)“ are offered
+only in the Fall semester. There are no modules in the „Minor area
+Informatics“ in the Spring semester. Take this into account when
+planning your next few semesters.
+You can change your Minor under certain conditions:
+https://www.oec.uzh.ch/en/studies/general/enrollment/change.html
+9/25/23
+
+Page 14
+
+Hints (1/3)
+Department of Informatics
+
+–
+
+Focus on the compulsory modules in your Major and Minor programs
+
+–
+
+Make a study plan à Check course schedule of previous years for planning. Courses often stay
+in the same slot. Suggested order:
+–
+
+1st semester: Compulsory module and course work
+
+3rd semester:
+st semester:
+2nd semester:
+– 2nd1semester:
+Course work, Masterʼs
+Project (usually duringRemaining
+summer break)
+module
+and
+course work,
+– Compulsory
+3rd semester:
+Remaining
+courseCourse
+work work,
+finish Master’s
+course work
+Master’s Project
+Project
+– 4th semester: Masterʼs Thesis
+
+4th semester:
+Master’s
+Thesis
+
+–
+
+Read the fact sheets well before starting the respective module or thesis
+
+–
+
+All legally binding information regarding modules, incl. exam dates, are in the UZH Course Catalogue.
+Most modules additionally have a website or OLAT course, but the Course Catalogue is binding.
+
+9/25/23
+
+Page 15
+
+Hints (2/3)
+Department of Informatics
+
+–
+
+Check the study websites of the Faculty and the Department:
+–
+
+https://www.oec.uzh.ch/en/studies.html
+
+–
+
+https://www.ifi.uzh.ch/en/studies/msc-info.html
+
+–
+
+Note that booking/cancellation deadlines may vary between faculties.
+
+–
+
+Working at IfI: Some modules/courses seek Tutors or Teaching Assistants. Check out
+https://www.ifi.uzh.ch/en/studies/msc-info.html and the individual group pages.
+
+–
+
+Mentoring, social events, representatives: Informatics student association ICU: https://icuzh.ch
+
+9/25/23
+
+Page 16
+
+Hints (3/3)
+Department of Informatics
+
+–
+
+–
+
+Consider the policies on plagiarism and scientific integrity. You find the fact sheet on plagiarism
+on this website:
+–
+
+https://www.ifi.uzh.ch/en/studies/msc-info.html
+
+–
+
+The Swiss Academies of Arts and Sciences issued a Code of conduct for scientific integrity:
+https://akademien-schweiz.ch/en/themen/scientific-culture/scientific-integrity-1/
+
+UZH provides a number of advice and support services for topics such as Gender Equality and
+Diversity, Disability, or Psychological Counseling:
+–
+
+–
+
+https://www.students.uzh.ch/en/advice.html
+
+Practise passive and active English without tools (in exams, no translation tools are permitted)
+–
+
+9/25/23
+
+UZH offers English courses: https://www.sprachenzentrum.uzh.ch/en/Sprachkurse/Englisch.html
+Page 17
+
+Questions/Whom to Contact
+Department of Informatics
+
+If you have questions, please follow these steps:
+1. Read the Study Regulations: https://www.oec.uzh.ch/en/studies/regulations.html
+2. Read the IfI‘s study information and fact sheets: https://www.ifi.uzh.ch/en/studies/msc-info.html
+3. Check information in the Course Catalogue: https://studentservices.uzh.ch/uzh/anonym/vvz/index.html
+4. Send e-mail to the respective person:
+For questions about
+–
+
+Masterʼs Project
+
+–
+
+Independent Studies
+
+–
+
+Masterʼs Thesis
+
+–
+
+Informatics studies in general
+
+Contact the IfIʼs Study
+Coordinator, Daniela Bärtschi:
+studies@ifi.uzh.ch
+9/25/23
+
+For questions specific to a course: Contact the instructor.
+
+For everything else, contact the Deanʼs Office:
+https://www.oec.uzh.ch/en/staff/team.html (Study Affairs)
+And of course you can ask your fellow students, for example by
+joining the student association ICU: https://icuzh.ch
+
+Page 18
+
+Did you know?
+Department of Informatics
+
+The Informatics Library is part of the UB Sciences
+on the Irchel campus!
+Books can be delivered to Oerlikon free of charge:
+Simply select “UB Psychology” as pick-up location in swisscovery.
+https://t.uzh.ch/1mr
+or https://www.ub.uzh.ch/en
+
+25.09.23
+
+Page 19
+
+
