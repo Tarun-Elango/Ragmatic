@@ -11,9 +11,13 @@ const userSchema = new Schema (
           required: true,
           unique: true,
         },
+        auth0id: {
+          type: String,  // Change the type based on the type of IDs you expect from Auth0
+          required:true,
+        },
         createdAt: {
-          type: Date,
-          default: Date.now,
+          type: String,  // Change the type to String
+          default: () => new Date().toISOString(), // Use a function to set the default value to the current date as a string
         },
         messageId: {
           type: Schema.Types.ObjectId,

@@ -1,0 +1,16 @@
+@media (max-width: 768px) {
+    /* Add styles for mobile devices */
+    h3 {
+        font-size: 1em; /* Adjust font size for smaller screens */
+        flex: initial; /* Remove flex for better responsiveness */
+        margin-right: 0; /* Remove right margin for better spacing */
+    }
+    h2 {
+        font-size: 1em; /* Adjust font size for smaller screens */
+    }
+    Button {
+        font-size: 0.8em; /* Adjust font size for smaller screens */
+        margin-left: 5px; /* Adjust margin for better spacing */
+        margin-right: 5px; /* Adjust margin for better spacing */
+    }
+}

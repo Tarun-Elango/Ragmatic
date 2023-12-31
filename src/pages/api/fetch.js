@@ -1,3 +1,0 @@
-export default function handler(req, res) {
-  res.status(200).json({ message: 'Lorem ipsum dolor sit amet, malis mollis et vim, clita quidam expetenda ex mei. Usu adhuc legere no, graece vivendum ius in, mutat suavitate mel no. Ut sit ullum doctus viderer, ad vis primis legimus dignissim, ne tollit disputationi sea. Sit et unum oblique probatus, facilis convenire per te, nec movet malorum persius in. Hinc option saperet cu nec, no sea offendit iudicabit, brute delicata conceptam ad vis.Ex usu cibo labore appareat. Ex vitae dolore vis, in his quaestio reformidans,' })
-}

@@ -25,3 +25,13 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+
+
+@media (max-width: 600px) {
+  /* Add the styles for smaller screens here */
+  h3 {
+      /* Example styles for smaller screens */
+      font-size: '0.1em'
+  }
+}
+
