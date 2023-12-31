@@ -197,9 +197,6 @@ export default function Home({accessToken}) {
             email_verifie:false
             name:"a@a.com"
             nickname: "a"
-            picture:"https://s.gravatar.com/avatar/d10ca8d11301c2f4993ac2279ce4b930?s=480&r=pg&d=https%3A%2F%2Fcdn.auth0.com%2Favatars%2Fa.png"
-            sid:"u9UjwWdn-WD8x--CahUpvMD6WEB7tdg8"
-            sub: "auth0|64f945e00f1413519a6c863a"
             updated_at2023-12-24T05:50:25.966Z"
          */
 
