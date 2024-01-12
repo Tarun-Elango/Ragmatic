@@ -30,7 +30,7 @@ async function authenticateRequest(token) {
 
   try {
     // Verify the given token
-    const at = token.replace('bearer ', '')
+    const at = token.replace('Bearer ', '')
     const result  = await jose.jwtVerify(at, jwks, {
         audience: process.env.AUTH0_AUD,
         issuer: process.env.AUTH0_ISSUER_BASE_URL, 

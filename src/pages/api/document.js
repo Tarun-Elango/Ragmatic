@@ -11,43 +11,44 @@ export const config = {
 
 
 export default async function handler(req, res) {
-  if (req.method === 'GET') {
-      // get all the users document
-      const { userId } = req.body;
-      try {
-          const usersDocumentList = await Document.find({ userRefID: userId });
-          if (usersDocumentList.length === 0) {
-              res.status(404).json({ error: 'No documents found for the user' });
-          } else {
-              res.status(200).json(usersDocumentList);
-          }
-      } catch (error) {
-        res.status(500).json({ error: 'Error fetching users documents' });
-      }
+  if (req.method === 'POST') {
+    const { userRefID, docuName, type } = req.body;
 
-    } 
-    
-    else if (req.method === 'POST') {
-      // upload a document for the user 
-      const { userRefID, docuName } = req.body;
-      const existingUserDocu = await Document.findOne({
-          userRefID: userRefID,
-          docuName: docuName
-      });
-    if (existingUserDocu){
-      res.status(400).json({error:'users document already exists'})
+    if (type == 'fetch') {
+        try {
+            const usersDocumentList = await Document.find({ userRefID: userRefID });
+            if (usersDocumentList.length === 0) {
+                return res.status(404).json({ error: 'No documents found for the user' });
+            } else {
+                return res.status(200).json(usersDocumentList);
+            }
+        } catch (error) {
+            return res.status(500).json({ error: 'Error fetching users documents' });
+        }
+    } else if (type == 'add') {
+        const existingUserDocu = await Document.findOne({
+            userRefID: userRefID,
+            docuName: docuName
+        });
+        if (existingUserDocu) {
+            return res.status(400).json({ error: 'User\'s document already exists' });
+        } else {
+            try {
+                const document = new Document({ userRefID, docuName });
+                await document.save();
+                return res.status(201).json(document);
+            } catch (error) {
+                return res.status(500).json({ error: 'Error creating user\'s document' });
+            }
+        }
     } else {
-      try {
-        const document = new Document({ userRefID, docuName });
-        await document.save();
-        res.status(201).json(document);
-      } catch (error) {
-        res.status(500).json({ error: 'Error creating users document' });
-      }
+        return res.status(500).json({ error: 'Wrong input body' });
     }
-      
-      
-    } else if (req.method === 'DELETE'){
+}
+
+
+
+   else if (req.method === 'DELETE'){
       // delete a document for the user using the document id
       const { documentId } = req.body; // Assuming the documentId is passed in the request body
       try {
