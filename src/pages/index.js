@@ -416,6 +416,7 @@ export default function Home({accessToken}) {
         return '%' + c.charCodeAt(0).toString(16);
     });
     }
+    
     const [chatIdToDelete, setChatIdToDelete] = useState(null);
     const [ deleteChatMessag, setDeleteChatMessage ] = useState(null)
     const handleDeleteChatCancel = ()=>{
@@ -426,7 +427,6 @@ export default function Home({accessToken}) {
 
 
     const deletchat = (id)=>{
-
         setChatIdToDelete(id)
         setIsDeleteChatModalOpen(true) //open modal
        
@@ -444,7 +444,7 @@ export default function Home({accessToken}) {
             });
         
             const data = await response.json();
-        
+    
             if (response.ok) {
                 // if successful
                 setCurrentChat({ index: null, id: null }) // set the current chat to null
@@ -465,11 +465,7 @@ export default function Home({accessToken}) {
             openNotification('Failed to delete this chat.');
             console.error('Error during fetch:', error.message);
             // Handle the fetch error here
-          }
-        
-
-
-        
+          }    
     }
     useEffect(() => {
     }, [chatIdToDelete]);
@@ -737,12 +733,12 @@ export default function Home({accessToken}) {
                     Back
                 </Button>
                 {
-  deleteChatMessag === null && (
-    <Button key="yes-button" onClick={handleDeleteChatYes} type="dashed">
-      Yes
-    </Button>
-  )
-}
+                deleteChatMessag === null && (
+                    <Button key="yes-button" onClick={handleDeleteChatYes} type="dashed">
+                    Yes
+                    </Button>
+                )
+                }
             </div> 
             ]}>
                 {deleteChatMessag}
@@ -788,9 +784,7 @@ export default function Home({accessToken}) {
             </Modal>
 
     </>
-    
     )
-
     } else if (isLoading) {
         return <LoadingComponent msg="Loading..." />
     } else if (error) {
