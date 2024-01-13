@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     // Your protected API logic goes here
     res.status(200).json({
       success: true,
-      message: 'Protected API route accessed successfully',
+      message: 'Protected API route accessed successfully.',
       exp: expTime.toISOString(), // Convert the timestamp to ISO format or any other desired format
     });
   }

@@ -2,7 +2,7 @@ import { Modal, Input, Space, Button, notification,Spin  } from 'antd'
 import { React } from 'react'
 import { useState, useRef, useEffect } from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
-import OpaqueLoading from '../opaqueLoading';
+import OpaqueLoading from '../OpaqueLoading';
 
 function UploadModal(props){
   const {user, error, isLoading } = useUser();
@@ -88,7 +88,7 @@ function UploadModal(props){
               onChange={(e) => setFile(e.target.files?.[0])}
               ref={fileInputRef}
             />
-            <input type="submit" value="Upload" style={{border:'2px solid #000', padding:'5px', borderRadius:'8px', backgroundColor:'#7ce38b'}}/>
+            <input type="submit" value="Upload" style={{border:'2px solid #000', padding:'6px', borderRadius:'8px', backgroundColor:'#7ce38b'}}/>
           </form>
 
           {file && !isManualLoading &&(

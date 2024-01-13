@@ -25,6 +25,24 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+body, .main-container {
+    overflow: hidden;
+    height: 100vh; /* Adjust this based on your layout */
+    margin: 0; /* Remove default margin */
+}
+
+/* Enable scrolling on specific elements */
+.scrollable-element {
+    overflow-y: auto; /* Only vertical scrolling */
+    height:'100vh'; /* Adjust height accordingly */
+    /* Other styles */
+}
+
+/* Ensure that no child elements overflow their parent container */
+.child-element {
+    overflow: hidden; /* Prevent unwanted overflow */
+    /* Other styles */
+}
 
 
 @media (max-width: 600px) {
