@@ -68,7 +68,7 @@ function UploadModal(props){
     
       <Modal
         open={visible}
-        title='Upload a New Document.'
+        title='Upload a New Resource.'
         onCancel={handleCancel}
         footer={[
           <div key="footer-content" style={{ display: 'flex', alignItems: 'center' }}>

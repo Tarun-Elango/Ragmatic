@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import {  UserOutlined, InfoCircleOutlined, PlusCircleOutlined, DoubleLeftOutlined,DoubleRightOutlined, FileAddOutlined } from '@ant-design/icons';
-import { Button, Input,Tooltip, Menu,List,Modal } from 'antd';
+import {  UserOutlined, InfoCircleOutlined, PlusCircleOutlined, DoubleLeftOutlined,DoubleRightOutlined, FileAddOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Button, Input,Tooltip, Menu,List,Modal,notification  } from 'antd';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import Head from 'next/head'
 import LoadingComponent from '../components/LoadingComponent'
@@ -11,17 +11,24 @@ import AccountModal from '../components/modals/AccountModal';
 import axios from 'axios';
 
 // TODO: 
+// add token valid to all routes
 // change auth0, mongodb, chroma to supabase
 // change the css when media > 250% scroll in @ media in global.css
-// connect front and back
-// retrieve all user documents and chat in usetate, replace the sample arrays
-// ui changes when no document or chat, ask user to upload ...., check all edge cases
-// about, settings modal
-// account page, later on stripe etc
-//connect the ai server to the messaging chat
-// TODO; when idtoken is expired force user to logout
+// connect to ai logic
+// account page, and connect to stripe etc
+// when users idtoken is expired force user to logout, getsession has it
 
 export default function Home({accessToken}) {
+    const openNotification = (message, description) => {
+        notification.open({
+          message: message,
+          description: description,
+          onClick: () => {
+            console.log('Notification Clicked!');
+          },
+        });
+      };
+
     const token = accessToken
     const {user, error, isLoading } = useUser();
     const router = useRouter();
@@ -35,6 +42,7 @@ export default function Home({accessToken}) {
     const [isUploadOpen, setIsUploadOpen] = useState(false)
     const [isAboutOpen, setIsAboutOpen] = useState(false)
     const [isAccountModalOpen, setIsAccountModalOpen] = useState(false)
+    const [ isDeleteChatModalOpen, setIsDeleteChatModalOpen] =useState(false)
     const [isLeftColumnVisible, setIsLeftColumnVisible] = useState(true);
 
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -49,6 +57,7 @@ export default function Home({accessToken}) {
         setIsModalVisible(true);
     };
     
+    // function to select a new doc
     const handleSelect = (item) => {
         setMessageList([])
         setCurrentChat({ index: null, id: null })
@@ -67,6 +76,7 @@ export default function Home({accessToken}) {
         setIsModalVisible(false);
     };
 
+
     const handleSearchChange = (e) => {
         //setSearchTerm(e.target.value);
         const value = event.target.value;
@@ -84,8 +94,10 @@ export default function Home({accessToken}) {
             setIsLeftColumnVisible(true)
         }
     }
+
     const [messageList, setMessageList] = useState([]);
 
+    // to message to current messagelist
     const addMessage = (newMessage, messageType) => {
         const timestamp = new Date().toISOString(); // ISO string format for timestamp
         const messageWithExtraInfo = {
@@ -102,7 +114,8 @@ export default function Home({accessToken}) {
     };
     
     
-    const addMessageMongo = async (message, type, id) =>{
+    // takes message, type, chatid, and creates a new message doc
+    const addMessageMongo = async (message, type, id) =>{ 
         if (!user?.sub) return;
       
         const postData = {
@@ -125,14 +138,16 @@ export default function Home({accessToken}) {
             }
         
             const data = await response.json();
-            console.log('Response data:', data);
-            // Handle the successful response here
+            // if good do nothing
           } catch (error) {
             console.error('Error:', error);
             // Handle errors here
+            // cant do much now, when mongo fails
+            openNotification('Failed to store message.');
           }
     }
 
+    // used the current doc selected and creates a new chat 
     const newChatMongo = async () => {
         if (!user?.sub) return;
 
@@ -158,71 +173,80 @@ export default function Home({accessToken}) {
             });
       
             if (response.ok) {
-              const data = await response.json(); 
-              console.log('Chat created:', data);
-              return data
+              return await response.json();
               // Handle successful response here
             } else {
-              throw new Error('Request failed');
+                throw new Error('Request failed with status: ' + response.status);
             }
           } catch (error) {
-            console.error('Error:', error);
-            // Handle errors here
+            openNotification('Failed to store newly created Chat.');
+            console.error('MongoDB Operation Error:', error);
+        return { error: true, message: error.message };
           }
 
     }
 
+    // function to handle send button 
     const handleButtonClick = async () => {
 
-    let updatedChat = currentChat;
-    if (currentChat.index == null || currentChat.id == null) {
-        const res = await newChatMongo();
-        console.log(res);
-        if (res && res.data) {
-            const updatedArray = [...chatArray, res.data];
-            setChatArray(updatedArray);
-            updatedChat = { index: updatedArray.length, id: res.data._id };
-            setCurrentChat(updatedChat);
+        let updatedChat = currentChat;
+        if (currentChat.index == null || currentChat.id == null) {
+            const res = await newChatMongo();
+            if (res && !res.error) {
+                const updatedArray = [...chatArray, res.data];
+                setChatArray(updatedArray);
+                updatedChat = { index: updatedArray.length, id: res.data._id };
+                setCurrentChat(updatedChat);
+            }else {
+                // Handle MongoDB operation failure here
+                console.error('Failed to create new chat:', res.message);
+                // Optionally, display an error message to the user
+                return;
+            }
         }
-    }
 
-    // Ensure this block only runs if updatedChat is valid
-    if (updatedChat.id) {
-        const currentDateTime = new Date().toLocaleString();
-        const newMessage = {
-            text: inputText,
-            timestamp: currentDateTime,
-            align: 'right',
-        };
-        console.log("current chat updated", updatedChat);
-        addMessageMongo(inputText, "userMessage", updatedChat.id);
-        addMessage(newMessage, "user");
-        await fetchAiResponse(updatedChat.id);
-        setInputText('');
-    }
+        // Ensure this block only runs if updatedChat is valid
+        if (updatedChat.id) {
+            const currentDateTime = new Date().toLocaleString();
+            const newMessage = {
+                text: inputText,
+                timestamp: currentDateTime,
+                align: 'right',
+            };
+            console.log("current chat updated", updatedChat);
+            addMessageMongo(inputText, "userMessage", updatedChat.id);
+            addMessage(newMessage, "user");
+            await fetchAiResponse(updatedChat.id);
+            setInputText('');
+        }
     };
 
     const fetchAiResponse = async (id) => {
         try {
-            const apiFetch = await fetch('api/health', {
+            const openAiData = {
+                prompt:"Say - Welcome to the chat in french"
+              }
+            const apiFetch = await fetch('api/ai', {
+                method: 'POST',
                 headers: {
                     'Content-Type':'application/json',
                   'Authorization': `Bearer ${token}`
-                }
+                },
+                body: JSON.stringify(openAiData)
               });
             const data = await apiFetch.json();
             const responseMessage = {
-                text: JSON.stringify(data.message).slice(1, -1),
+                text: JSON.stringify(data).slice(1, -1),
                 timestamp: new Date().toLocaleString(),
                 align: 'left',
             };
 
             addMessage(responseMessage, "ai")
-            console.log(responseMessage.text, "botMessage", id)
             //console.log(responseMessage.text, "botMessage", currentChat.id)
             addMessageMongo(responseMessage.text, "botMessage", id)
             // add to users chat 
         } catch (error) {
+            openNotification('Failed to receive a response.');
             console.error('Error fetching response:', error);
         }
     };
@@ -241,10 +265,10 @@ export default function Home({accessToken}) {
 
     const isButtonDisabled = inputText.trim() === '' ;
 
-    
+    // function to handle chat list and its selection
     const handleChatHistoryClick = async (chatId) => {
         clearMessageList()
-
+        
         // Step 1: Update State
         setCurrentChat({ index: chatArray.findIndex(chat => chat._id === chatId), id: chatId });
         // Step 2: Fetch Chat Content
@@ -277,6 +301,7 @@ export default function Home({accessToken}) {
                 }
             }
         } catch (error) {
+            openNotification('Failed to retrieve chats for selected resource.');
             console.error("Failed to fetch chat history:", error.message);
         }
         
@@ -301,7 +326,6 @@ export default function Home({accessToken}) {
     };
 
     const onNewChat = () => {
-        console.log('newChat')
         setMessageList([])
         currentChat.index = null
     };
@@ -380,18 +404,76 @@ export default function Home({accessToken}) {
 
           
         } catch (error) {
+            openNotification('Failed to retrieve your uploaded resources.');
           console.error('Failed to fetch user documents:', error);
         }
       };
       
       
-      function customEncodeURI(str) {
-        // A basic example that encodes everything except the pipe character '|'
-        return str.replace(/[^A-Za-z0-9\-_.!~*'()|]/g, function(c) {
-          return '%' + c.charCodeAt(0).toString(16);
-        });
-      }
+    function customEncodeURI(str) {
+    // A basic example that encodes everything except the pipe character '|'
+    return str.replace(/[^A-Za-z0-9\-_.!~*'()|]/g, function(c) {
+        return '%' + c.charCodeAt(0).toString(16);
+    });
+    }
+    const [chatIdToDelete, setChatIdToDelete] = useState(null);
+    const [ deleteChatMessag, setDeleteChatMessage ] = useState(null)
+    const handleDeleteChatCancel = ()=>{
+        setDeleteChatMessage(null)
+        setChatIdToDelete(null)
+        setIsDeleteChatModalOpen(false) //close modal
+    }
 
+
+    const deletchat = (id)=>{
+
+        setChatIdToDelete(id)
+        setIsDeleteChatModalOpen(true) //open modal
+       
+    }
+
+    const handleDeleteChatYes =async () =>{
+        // delete the chat onpressing yes
+        try {
+            const response = await fetch(`/api/chats?chatId=${chatIdToDelete}`, {
+              method: 'DELETE',
+              headers: {
+                // Add any necessary headers here
+                'Content-Type': 'application/json'
+              },
+            });
+        
+            const data = await response.json();
+        
+            if (response.ok) {
+                // if successful
+                setCurrentChat({ index: null, id: null }) // set the current chat to null
+                setMessageList([]) // set the message list to null to clear any chat
+                // update the chatarray, remove the chat object with the deleted chat id
+                const updatedChatArray = chatArray.filter(chat => chat._id !== chatIdToDelete);
+                setChatArray(updatedChatArray);
+
+                // Additional logic on successful deletion
+                setChatIdToDelete(null);// set id to null, to refresh the delete const
+                setDeleteChatMessage("chat deleted") // set delete message
+            } else {
+              console.error('Failed to delete chat:', data.message);
+              // Handle the error response here
+              setDeleteChatMessage("chat wasn't deleted, try again later")
+            }
+          } catch (error) {
+            openNotification('Failed to delete this chat.');
+            console.error('Error during fetch:', error.message);
+            // Handle the fetch error here
+          }
+        
+
+
+        
+    }
+    useEffect(() => {
+    }, [chatIdToDelete]);
+  
       const fetchChatMessages = async (userId, pdfId) => {
         try {
           const response = await fetch(`/api/chats?userID=${customEncodeURI(userId)}&document=${customEncodeURI(pdfId)}`, {
@@ -414,6 +496,7 @@ export default function Home({accessToken}) {
           }
       
         } catch (error) {
+            openNotification('Failed to retrieve chat messages.');
           console.error('Failed to fetch chat messages:', error);
           setChatArray([]); // Reset to empty array in case of error
         }
@@ -457,37 +540,57 @@ export default function Home({accessToken}) {
                                 onClick={onNewChat}
                             />
                         <ul style={{ 
-                            listStyle: 'none', 
-                            padding: '0 1px',
-                            overflowY: 'auto', 
-                            height: 'calc(100% - 60px)', 
-                            marginTop: '10px', 
-                            overflowX: 'hidden',
+                                listStyle: 'none', 
+                                padding: '0 1px',
+                                overflowY: 'auto', 
+                                height: 'calc(100% - 60px)', 
+                                marginTop: '10px', 
+                                overflowX: 'hidden',
                             }}>
-                            {
-                                Array.isArray(chatArray) && chatArray.map((chat, index) => (
+                                {Array.isArray(chatArray) && chatArray.map((chat, index) => (
                                     <li key={chat._id} style={{ margin: '5px 0' }}>
-                                        <a 
-                                            style={{ 
-                                                cursor: 'pointer', 
-                                                color: 'white', 
-                                                transition: 'color 0.3s',
-                                                padding: '2px 10px',
-                                                borderRadius: '5px',
-                                                backgroundColor:'#333',
-                                                display: 'block',
-                                            }} 
-                                            onMouseEnter={(e) => e.target.style.backgroundColor = '#21262d'}
-                                            onMouseLeave={(e) => e.target.style.backgroundColor = '#333'}
-                                            onClick={() => handleChatHistoryClick(chat._id)}
-                                            title={chat.chatName} // Shows the full name on hover
-                                        >
-                                            {chat.chatName.substring(0, 15)}
-                                        </a>
+                                        <div style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            backgroundColor: '#333',
+                                            borderRadius: '5px',
+                                            padding: '2px 10px',
+                                        }}>
+                                            <a 
+                                                style={{ 
+                                                    flex: 1, // makes the link expand to take available space
+                                                    cursor: 'pointer', 
+                                                    color: 'white',
+                                                    textDecoration: 'none',
+                                                    padding: '2px 10px',
+                                                    borderRadius: '5px',
+                                                    transition: 'background-color 0.3s',
+                                                }} 
+                                                onMouseEnter={(e) => e.target.style.backgroundColor = '#21262d'}
+                                                onMouseLeave={(e) => e.target.style.backgroundColor = '#333'}
+                                                onClick={() => handleChatHistoryClick(chat._id)}
+                                                title={chat.chatName} // Shows the full name on hover
+                                            >
+                                                {chat.chatName.substring(0, 15)}
+                                            </a>
+                                            <div 
+                                                onClick={() => deletchat(chat._id)}
+                                                style={{
+                                                    padding: '1px 2px',
+                                                    cursor: 'pointer',
+                                                    transition: 'background-color 0.3s',
+                                                }}
+                                                onMouseEnter={(e) => e.target.style.backgroundColor = '#21262d'}
+                                                onMouseLeave={(e) => e.target.style.backgroundColor = '#333'}
+                                            >
+                                                <DeleteOutlined style={{ color: 'white' }}/>
+                                            </div>
+                                        </div>
                                     </li>
-                                ))
-                            }
+                                ))}
                             </ul>
+
+
                     </div>
 
                     {isLeftColumnVisible && (
@@ -625,6 +728,25 @@ export default function Home({accessToken}) {
             hideAccountModal={() => setIsAccountModalOpen(false)}
         />
         )}
+        <Modal 
+            open={isDeleteChatModalOpen} 
+            title="Are you sure you want to delete this chat"  onCancel={handleDeleteChatCancel}
+            footer={[
+                <div key="footer-content" style={{ display: 'flex', alignItems: 'center' }}>
+                <Button key="back-button" onClick={handleDeleteChatCancel} type="dashed">
+                    Back
+                </Button>
+                {
+  deleteChatMessag === null && (
+    <Button key="yes-button" onClick={handleDeleteChatYes} type="dashed">
+      Yes
+    </Button>
+  )
+}
+            </div> 
+            ]}>
+                {deleteChatMessag}
+    </Modal>
         <Modal
             open={isModalVisible}
             title="Choose a document to begin the conversation"

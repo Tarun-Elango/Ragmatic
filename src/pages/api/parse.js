@@ -9,6 +9,8 @@ import { Pinecone } from '@pinecone-database/pinecone';
 import { pipeline } from '@xenova/transformers'
 const axios = require('axios');
 
+//TODO: retrive pinecone embeddings search, delete namespace/mongo
+
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
   environment: process.env.PINECONE_ENVIRONMENT,
@@ -53,44 +55,6 @@ apiRoute.post(async (req, res) => {
     const stats = await pinecone.index('jotdown').describeIndexStats();
     const namespaces = stats.namespaces;
 
-
-    try {
-      // add to mongodb
-      const userRefID = userId
-      const docuName = customNamespace
-      console.log('here')
-      const response = await fetch('http://localhost:3000/api/document', { // Use a full URL if necessary
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            userRefID: userRefID,
-            docuName: docuName,
-            type: "add"
-        })
-    });
-
-    if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    // Process the response data as needed
-    } catch (error) {
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        console.error('Error Response:', error);
-      } else if (error.request) {
-        // The request was made but no response was received
-        console.error('Error Request:');
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error('Error Message:', error);
-      }
-      return res.status(400).json({ error: 'MongoDb error', message:'MongoDb error' });
-    }
     //check if namespace exists
     for (const namespace in namespaces) {
         if (namespace === customNamespace) {
@@ -135,6 +99,7 @@ apiRoute.post(async (req, res) => {
           return { id: id, values: embedding };
       });
       
+      // add to pinecone
       try {
         // insert to custom namesapce
           await index.upsert(vectors);
@@ -143,6 +108,45 @@ apiRoute.post(async (req, res) => {
           console.error('Error during upsert:', error);
           return res.status(400).json({ error: 'pinecone Error', message:'pinecone error' });
       }
+
+      // add to mongodb
+      try {
+        const userRefID = userId
+        const docuName = customNamespace
+        console.log('here')
+        const response = await fetch('http://localhost:3000/api/document', { // Use a full URL if necessary
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              userRefID: userRefID,
+              docuName: docuName,
+              type: "add"
+          })
+      });
+  
+      if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      // Process the response data as needed
+      } catch (error) {
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          console.error('Error Response:', error);
+        } else if (error.request) {
+          // The request was made but no response was received
+          console.error('Error Request:');
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          console.error('Error Message:', error);
+        }
+        return res.status(400).json({ error: 'MongoDb error', message:'MongoDb error' });
+      }
+
       
       
 
