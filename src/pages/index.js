@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import {  UserOutlined, InfoCircleOutlined, PlusCircleOutlined, DoubleLeftOutlined,DoubleRightOutlined, FileAddOutlined, DeleteOutlined } from '@ant-design/icons';
+import {  UserOutlined, InfoCircleOutlined, PlusCircleOutlined, DoubleLeftOutlined,DoubleRightOutlined, FileAddOutlined, DeleteOutlined,WarningOutlined } from '@ant-design/icons';
 import { Button, Input,Tooltip, Menu,List,Modal,notification  } from 'antd';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import Head from 'next/head'
@@ -9,19 +9,22 @@ import UploadModal from '../components/modals/UploadModal';
 import AboutModal from '../components/modals/AboutModal'
 import AccountModal from '../components/modals/AccountModal';
 import axios from 'axios';
+import OpaqueLoading from '../components/OpaqueLoading'
 
 // TODO: 
 // add token valid to all routes
-// change auth0, mongodb, chroma to supabase
+// add a input formater before ui
 // change the css when media > 250% scroll in @ media in global.css
 // connect to ai logic
 // account page, and connect to stripe etc
+// rate limit messages, doc uploaded, and messages sent
+// change auth0, mongodb, chroma to supabase
 // when users idtoken is expired force user to logout, getsession has it
 
 export default function Home({accessToken}) {
     const openNotification = (message, description) => {
         notification.open({
-          message: message,
+          message: <span style={{ color: 'red' }}><WarningOutlined />{message}</span>,
           description: description,
           onClick: () => {
             console.log('Notification Clicked!');
@@ -49,12 +52,17 @@ export default function Home({accessToken}) {
     const [filteredData, setFilteredData] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [ chatArray, setChatArray ] = useState([])
+    const [chatIdToDelete, setChatIdToDelete] = useState(null);
+    const [ deleteChatMessag, setDeleteChatMessage ] = useState(null)
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [itemToDelete, setItemToDelete] = useState(null);
 
     const text = <span> About</span>;
     const newUpload = <span>Upload new document</span>
 
     const showModal = () => {
         setIsModalVisible(true);
+        console.log(docArray)
     };
     
     // function to select a new doc
@@ -74,6 +82,8 @@ export default function Home({accessToken}) {
 
     const handleCancel = () => {
         setIsModalVisible(false);
+        setShowDeleteConfirm(false)
+        setItemToDelete(null);
     };
 
 
@@ -143,7 +153,7 @@ export default function Home({accessToken}) {
             console.error('Error:', error);
             // Handle errors here
             // cant do much now, when mongo fails
-            openNotification('Failed to store message.');
+            openNotification(' Failed to store message.');
           }
     }
 
@@ -179,7 +189,7 @@ export default function Home({accessToken}) {
                 throw new Error('Request failed with status: ' + response.status);
             }
           } catch (error) {
-            openNotification('Failed to store newly created Chat.');
+            openNotification(' Failed to store newly created Chat.');
             console.error('MongoDB Operation Error:', error);
         return { error: true, message: error.message };
           }
@@ -246,7 +256,7 @@ export default function Home({accessToken}) {
             addMessageMongo(responseMessage.text, "botMessage", id)
             // add to users chat 
         } catch (error) {
-            openNotification('Failed to receive a response.');
+            openNotification(' Failed to receive a response.');
             console.error('Error fetching response:', error);
         }
     };
@@ -263,7 +273,7 @@ export default function Home({accessToken}) {
         setIsAccountModalOpen(true)
     }
 
-    const isButtonDisabled = inputText.trim() === '' ;
+    const isButtonDisabled = inputText.trim() === '' || docArray.length === 0 || typeArray===0;
 
     // function to handle chat list and its selection
     const handleChatHistoryClick = async (chatId) => {
@@ -301,7 +311,7 @@ export default function Home({accessToken}) {
                 }
             }
         } catch (error) {
-            openNotification('Failed to retrieve chats for selected resource.');
+            openNotification(' Failed to retrieve chats for selected resource.');
             console.error("Failed to fetch chat history:", error.message);
         }
         
@@ -363,14 +373,14 @@ export default function Home({accessToken}) {
         if (user?.sub) {
           fetchUserDocuments();
         }
-      }, [user]);
+    }, [user]);
       
-      useEffect(() => {
+    useEffect(() => {
         // Step 3: Set Filtered Data
         setFilteredData(typeArray);
-      }, [typeArray]);
+    }, [typeArray]);
       
-      const fetchUserDocuments = async () => {
+    const fetchUserDocuments = async () => {
         if (!user?.sub) return;
       
         const requestBody = {
@@ -404,21 +414,20 @@ export default function Home({accessToken}) {
 
           
         } catch (error) {
-            openNotification('Failed to retrieve your uploaded resources.');
+            //TODO: handle this better
           console.error('Failed to fetch user documents:', error);
         }
-      };
+    };
       
       
     function customEncodeURI(str) {
     // A basic example that encodes everything except the pipe character '|'
-    return str.replace(/[^A-Za-z0-9\-_.!~*'()|]/g, function(c) {
-        return '%' + c.charCodeAt(0).toString(16);
-    });
+        return str.replace(/[^A-Za-z0-9\-_.!~*'()|]/g, function(c) {
+         return '%' + c.charCodeAt(0).toString(16);
+        });
     }
-    
-    const [chatIdToDelete, setChatIdToDelete] = useState(null);
-    const [ deleteChatMessag, setDeleteChatMessage ] = useState(null)
+
+
     const handleDeleteChatCancel = ()=>{
         setDeleteChatMessage(null)
         setChatIdToDelete(null)
@@ -433,6 +442,7 @@ export default function Home({accessToken}) {
     }
 
     const handleDeleteChatYes =async () =>{
+        
         // delete the chat onpressing yes
         try {
             const response = await fetch(`/api/chats?chatId=${chatIdToDelete}`, {
@@ -462,15 +472,19 @@ export default function Home({accessToken}) {
               setDeleteChatMessage("chat wasn't deleted, try again later")
             }
           } catch (error) {
-            openNotification('Failed to delete this chat.');
+            openNotification(' Failed to delete this chat.');
             console.error('Error during fetch:', error.message);
             // Handle the fetch error here
           }    
     }
+
     useEffect(() => {
     }, [chatIdToDelete]);
-  
-      const fetchChatMessages = async (userId, pdfId) => {
+    
+    useEffect(() => {
+    }, [typeArray]);
+    
+    const fetchChatMessages = async (userId, pdfId) => {
         try {
           const response = await fetch(`/api/chats?userID=${customEncodeURI(userId)}&document=${customEncodeURI(pdfId)}`, {
             method: 'GET',
@@ -492,12 +506,74 @@ export default function Home({accessToken}) {
           }
       
         } catch (error) {
-            openNotification('Failed to retrieve chat messages.');
+            openNotification(' Failed to retrieve chat messages.');
           console.error('Failed to fetch chat messages:', error);
           setChatArray([]); // Reset to empty array in case of error
         }
+    };
+
+    const [isManualLoading, setManualLoading] = useState(false);
+
+
+    const refreshDocuments = () => {
+        fetchUserDocuments();
+    };
+
+    const deleteResource = (item, event) => {
+        event.stopPropagation(); // Prevents the List.Item onClick from being triggered
+        console.log("Delete resource:", item);
+        setShowDeleteConfirm(true);
+        setItemToDelete(item);
       };
     
+    const confirmDelete = async () => {
+        if (!user?.sub) return;
+        setManualLoading(true)
+        // Add your delete logic here using itemToDelete
+        console.log("Confirm delete:", itemToDelete);
+        // call the endpointwith id, and name
+        const deleteIndex = typeArray.indexOf(itemToDelete);
+        console.log(docArray[deleteIndex])
+        const deleteid = docArray[deleteIndex].docuId
+        const deleteName = docArray[deleteIndex].docuName
+        const body = JSON.stringify({ docId:deleteid, docName:deleteName });
+        try {
+            const response = await fetch('api/document', {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: body
+            });
+        
+            const data = await response.json();
+        
+            if (response.ok) {
+              console.log('Success:', data);
+            } else {
+              console.error('Error:', data.message);
+            }
+          } catch (error) {
+            openNotification('Resource could not be deleted.')
+            console.error('Fetch error:', error.message);
+          }
+
+        //remove from typearray, and docarray
+        refreshDocuments();
+        if (deleteIndex !== -1) {
+            typeArray.splice(deleteIndex, 1);
+          }
+          setMessageList([])
+        fetchChatMessages(user?.sub, deleteid)
+        // Hide the confirmation message and reset itemToDelete
+        setShowDeleteConfirm(false);
+        setItemToDelete(null);
+        setManualLoading(false)
+    };
+    const deselectDelete =()=>{
+        setShowDeleteConfirm(false);
+        setItemToDelete(null);
+    }
 
   if (user){
   return (
@@ -606,7 +682,7 @@ export default function Home({accessToken}) {
                             </Tooltip>
                         </h3>
                         <Tooltip placement="bottom" title={newUpload}><FileAddOutlined onClick={()=>setIsUploadOpen(true)} style={{marginLeft:'10px'}}/></Tooltip>
-                        <Button style={{ backgroundColor: '#fa7970', marginLeft:'15px',marginRight:'15px', border:'black' }} onClick={showModal}>Select Resource</Button>
+                        <Button style={{ backgroundColor: '#fa7970', marginLeft:'15px',marginRight:'15px', border:'black' }} onClick={showModal}>Manage Resource</Button>
                         <Menu onClick={onClick}  mode="horizontal" items={accounts} style={{backgroundColor:'transparent', color:'white', marginRight:'15px'}}/>
                     </div>
 
@@ -712,6 +788,7 @@ export default function Home({accessToken}) {
                     isContactOpen={isUploadOpen}
                     setIsContactOpen={setIsUploadOpen}
                     hideUploadModal={()=>setIsUploadOpen(false)}
+                    onUploadSuccess={refreshDocuments}
                     />
                 )} 
         {isAboutOpen && (
@@ -743,45 +820,60 @@ export default function Home({accessToken}) {
             ]}>
                 {deleteChatMessag}
     </Modal>
-        <Modal
-            open={isModalVisible}
-            title="Choose a document to begin the conversation"
-            onCancel={handleCancel}
-            footer={[
-                <div key="footer-content" style={{ display: 'flex', alignItems: 'center' }}>
-                <Button key="back-button" onClick={handleCancel} type="dashed" style={{ backgroundColor: "#fa7970" }}>
-                    Back
-                </Button>
-                </div>
-            ]}>
-            <Input
-                placeholder="Search for an uploaded resource"
-                value={searchTerm}
-                onChange={handleSearchChange}
-            />
-            <div style={{ marginTop: '10px' }}>
-                {filteredData.length > 0 ? (
-                <List
-                    size="small"
-                    bordered
-                    dataSource={filteredData}
-                    renderItem={item => (
-                    <List.Item
-                        style={{ cursor: 'pointer', backgroundColor: item === typeArray[currentDocuIndex] ? '#f0f0f0' : '' }}
-                        onClick={() => handleSelect(item)}
-                    >
-                        {item}
-                    </List.Item>
-                    )}
-                    style={{ maxHeight: '200px', overflow: 'auto' }}
+    <Modal
+      open={isModalVisible}
+      title="Choose a Resource to begin the conversation"
+      onCancel={handleCancel}
+      footer={[
+        <Button key="back-button" onClick={handleCancel} type="dashed" style={{ backgroundColor: "#fa7970" }}>
+          Back
+        </Button>
+      ]}
+    >
+        <OpaqueLoading isShowing={isManualLoading} />
+      <Input
+        placeholder="Search for an uploaded resource"
+        value={searchTerm}
+        onChange={handleSearchChange}
+      />
+      <div style={{ marginTop: '10px' }}>
+        {filteredData.length > 0 ? (
+          <List
+            size="small"
+            bordered
+            dataSource={filteredData}
+            renderItem={item => (
+              <List.Item
+                style={{ cursor: 'pointer', backgroundColor: item === typeArray[currentDocuIndex] ? '#f0f0f0' : '' }}
+                onClick={() => handleSelect(item)}
+              >
+                {item}
+                <DeleteOutlined
+                  style={{ color: 'red', float: 'right', cursor: 'pointer' }}
+                  onClick={(e) => deleteResource(item, e)}
                 />
-                ) : (
-                <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                    Please upload a resouce to start a conversation.
-                </div>
-                )}
-            </div>
-            </Modal>
+              </List.Item>
+            )}
+            style={{ maxHeight: '200px', overflow: 'auto' }}
+          />
+        ) : (
+          <div style={{ textAlign: 'center', marginTop: '20px' }}>
+            Please upload a resource to start a conversation.
+          </div>
+        )}
+        {showDeleteConfirm && (
+          <div style={{ display: 'flex', alignItems: 'center', marginTop: '10px' }}>
+            <h2>Are you sure you want to delete selected item</h2>
+            <Button style={{ backgroundColor: 'red', marginLeft: '10px' }} onClick={confirmDelete}>
+              Yes
+            </Button>
+            <Button style={{ backgroundColor: 'green', marginLeft: '10px'}} onClick={deselectDelete}>
+              No
+            </Button>
+          </div>
+        )}
+      </div>
+    </Modal>
 
     </>
     )

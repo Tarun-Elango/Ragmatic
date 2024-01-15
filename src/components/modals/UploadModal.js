@@ -1,10 +1,21 @@
 import { Modal, Input, Space, Button, notification,Spin  } from 'antd'
+import {  WarningOutlined } from '@ant-design/icons';
+
 import { React } from 'react'
 import { useState, useRef, useEffect } from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import OpaqueLoading from '../OpaqueLoading';
 
 function UploadModal(props){
+  const openNotification = (message, description) => {
+    notification.open({
+      message: <span style={{ color: 'red' }}><WarningOutlined />{message}</span>,
+      description: description,
+      onClick: () => {
+        console.log('Notification Clicked!');
+      },
+    });
+  };
   const {user, error, isLoading } = useUser();
   const [visible, setVisible] = useState(true)
   const [file, setFile] = useState(null);
@@ -36,7 +47,6 @@ function UploadModal(props){
     setFile(null);
     setManualLoading(true)
     try {
-
       // set the loading symbol
       // process the pdf and send to pinecone, namespace (i.e pinecone docuname) = user id + pdf name
       const formData = new FormData();
@@ -52,8 +62,10 @@ function UploadModal(props){
       const data = await response.json();
       setUploadResponse(data.message)
       console.log(data.message);
+      props.onUploadSuccess();
 
     } catch (e) {
+      openNotification('failed to upload doc')
       console.error(e);
     }
 

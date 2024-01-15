@@ -7,9 +7,7 @@ const PDFParser = require('pdf-parse');
 import OpenAI from 'openai';
 import { Pinecone } from '@pinecone-database/pinecone';
 import { pipeline } from '@xenova/transformers'
-const axios = require('axios');
-
-//TODO: retrive pinecone embeddings search, delete namespace/mongo
+import Pages from '../../models/Pages'
 
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
@@ -44,12 +42,13 @@ apiRoute.post(async (req, res) => {
     const userId = req.body.userId
     const filepath = uploadedFile.originalname
     const buffer = uploadedFile.buffer;
+    
     const data = await PDFParser(buffer);
     const pdfText = data.text;// Convert buffer to text using pdf-parse
     console.log('File received:', uploadedFile.originalname);
 
     // get the current docs namespace
-    const customNamespace =`${userId}${filepath.slice(0, -4).replace("-", "")}`;;
+    const customNamespace =`${userId}${filepath.replace("-", "")}`;;
     const index = pinecone.index('jotdown').namespace(customNamespace)
     let check = false
     const stats = await pinecone.index('jotdown').describeIndexStats();
@@ -66,6 +65,44 @@ apiRoute.post(async (req, res) => {
 
     // if it does not exist
     if (!check){
+     let mongoResponse
+      // add to mongodb
+      try {
+        const userRefID = userId
+        const docuName = customNamespace
+        console.log('here')
+        const response = await fetch('http://localhost:3000/api/document', { // Use a full URL if necessary
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              userRefID: userRefID,
+              docuName: docuName,
+              type: "add"
+          })
+        });
+  
+      if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+      }
+  
+      mongoResponse = await response.json();
+      // Process the response data as needed
+      } catch (error) {
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          console.error('Error Response:', error);
+        } else if (error.request) {
+          // The request was made but no response was received
+          console.error('Error Request:');
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          console.error('Error Message:', error);
+        }
+        return res.status(400).json({ error: 'MongoDb error', message:'MongoDb error' });
+      }
 
       const loader = new PDFLoader(uploadedFile, {
         // you may need to add `.then(m => m.default)` to the end of the import
@@ -86,15 +123,30 @@ apiRoute.post(async (req, res) => {
       const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small') 
       let embeddingsList = [];
       for (const [index, body] of docOutput.entries()) {
-          const output = await generateEmbedding(body.pageContent, {
-              pooling: 'mean',
-              normalize: true,
-          });
-          const embedding = Array.from(output.data);
-          embeddingsList.push({ id: `doc-${index}`, embedding }); // Use index as part of the ID
+
+        // add page to mongodb
+        const newPage = new Pages({
+          document: mongoResponse.docuId,
+          userID: userId,
+          PageNumber: index.toString(),
+          PageText: body.pageContent,
+          embeddingsID: `doc-${index}`, // Assuming this is your embeddings ID
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+
+        newPage.save()
+
+        const output = await generateEmbedding(body.pageContent, {
+            pooling: 'mean',
+            normalize: true,
+        });
+        const embedding = Array.from(output.data);
+        embeddingsList.push({ id: `doc-${index}`, embedding }); // Use index as part of the ID
       }
       
-      // this is the processed embeddings list for pinecone 
+      // // this is the processed embeddings list for pinecone 
+      // // TODO: add metadata to relate the vector to the actual text
       const vectors = embeddingsList.map(({ id, embedding }) => {
           return { id: id, values: embedding };
       });
@@ -109,47 +161,10 @@ apiRoute.post(async (req, res) => {
           return res.status(400).json({ error: 'pinecone Error', message:'pinecone error' });
       }
 
-      // add to mongodb
-      try {
-        const userRefID = userId
-        const docuName = customNamespace
-        console.log('here')
-        const response = await fetch('http://localhost:3000/api/document', { // Use a full URL if necessary
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-              userRefID: userRefID,
-              docuName: docuName,
-              type: "add"
-          })
-      });
-  
-      if (!response.ok) {
-          throw new Error(`Error: ${response.status}`);
-      }
-  
-      const data = await response.json();
-      // Process the response data as needed
-      } catch (error) {
-        if (error.response) {
-          // The request was made and the server responded with a status code
-          // that falls out of the range of 2xx
-          console.error('Error Response:', error);
-        } else if (error.request) {
-          // The request was made but no response was received
-          console.error('Error Request:');
-        } else {
-          // Something happened in setting up the request that triggered an Error
-          console.error('Error Message:', error);
-        }
-        return res.status(400).json({ error: 'MongoDb error', message:'MongoDb error' });
-      }
 
       
-      
 
+    // once all upload complete
       res.status(200).json({
         message: 'File uploaded successfully',
       //   fileName: uploadedFile.originalname,

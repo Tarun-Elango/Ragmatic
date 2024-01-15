@@ -1,6 +1,16 @@
 import connectDB from '../../helper/mongodb';
 import Document from '../../models/Document';
+import { Pinecone } from '@pinecone-database/pinecone';
 
+import Pages from '../../models/Pages'
+import Mes from '../../models/Mes';
+import Chat from '../../models/Chat'
+
+  const pinecone = new Pinecone({
+    apiKey: process.env.PINECONE_API_KEY,
+    environment:process.env.PINECONE_ENVIRONMENT,
+  });
+  
 
 connectDB();
 export const config = {
@@ -49,17 +59,44 @@ export default async function handler(req, res) {
 
 
    else if (req.method === 'DELETE'){
-      // delete a document for the user using the document id
-      const { documentId } = req.body; // Assuming the documentId is passed in the request body
-      try {
-          const deletedDocument = await Document.findByIdAndDelete(documentId);
-          if (!deletedDocument) {
-              res.status(404).json({ error: 'Document not found' });
-          } else {
-              res.status(200).json({ message: 'Document deleted successfully' });
+    try {
+        const { docId, docName } = req.body;
+    
+        const index = pinecone.index('jotdown')
+        // Delete embeddings from Pinecone
+        await index.namespace(docName).deleteAll();
+
+        // Delete the document
+        const result = await Document.deleteMany({ docuId: docId });
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ success: false, message: 'No documents found with the specified docId' });
           }
+    
+       // get all chats for doc
+        const chats = await Chat.find({ document: docId });
+        //delete the chat and its messages
+        for (const chat of chats) {
+          const chatId = chat._id; // Assuming `_id` is the field that stores the chat ID
+          // Delete the chat
+          const deletedChat = await Chat.findByIdAndDelete(chatId);
+          if (!deletedChat) {
+            return res.status(404).json({ success: false, message: 'Chat not found' });
+          }
+        
+          // Delete all associated messages
+          const test = await Mes.deleteMany({ chatID: chatId });
+        }
+        console.log('deleted chats and messages')
+    
+    
+        // Delete all pages associated with the document
+        await Pages.deleteMany({ document: docId });
+        console.log('deleted pages')
+    
+    
+        res.status(200).json({ success: true, message: 'Document and related data deleted successfully' });
       } catch (error) {
-          res.status(500).json({ error: 'Error deleting user document' });
+        res.status(500).json({ success: false, message: 'Server error', error: error.message });
       }
     }
 }
