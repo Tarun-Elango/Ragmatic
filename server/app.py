@@ -6,7 +6,7 @@ from sentence_transformers import CrossEncoder
 from openai import OpenAI
 import time
 import os
-os.environ["OPENAI_API_KEY"] = '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'
+os.environ["OPENAI_API_KEY"] = ''
 client = OpenAI(
     # This is the default and can be omitted
     api_key=os.environ.get("OPENAI_API_KEY"),
