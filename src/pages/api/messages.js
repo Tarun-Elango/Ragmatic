@@ -1,6 +1,7 @@
 import connectDB from '../../helper/mongodb';
 import Mes from '../../models/Mes';
 import Chat from '../../models/Chat'
+import { middleware } from "../../middleware/middleware";
 
 connectDB();
 export const config = {
@@ -11,6 +12,11 @@ export const config = {
 
 //messages, relate to mes
 export default async function handler(req, res) {
+  const result = await middleware(req);
+
+  if (!result.success) {
+    res.status(400).json({ success: false, message: result.message });
+  } else {
     // get chats messages
     if (req.method === 'GET') {
         
@@ -34,7 +40,7 @@ export default async function handler(req, res) {
         }
       } 
 
-
+      // create a new message
       else if (req.method === 'POST') {
         try {
           const { chatID, userID, messageType, content } = req.body;
@@ -51,4 +57,5 @@ export default async function handler(req, res) {
       } else {
         res.status(405).json({ success: false, message: 'Method Not Allowed' });
       }
+    }
 }

@@ -4,19 +4,16 @@ import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Document } from "@langchain/core/documents";
 const PDFParser = require('pdf-parse');
-import OpenAI from 'openai';
+import axios from 'axios';
 import { Pinecone } from '@pinecone-database/pinecone';
 import { pipeline } from '@xenova/transformers'
 import Pages from '../../models/Pages'
+import { middleware } from "../../middleware/middleware";
 
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
   environment: process.env.PINECONE_ENVIRONMENT,
 });
-
-// const openai = new OpenAI({
-// apiKey: process.env.OPENAI_API_KEY,
-// });
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -33,8 +30,18 @@ const apiRoute = createRouter();
 apiRoute.use(upload.single('file'));
 
 apiRoute.post(async (req, res) => {
+  const result = await middleware(req);
+
+  if (!result.success) {
+    res.status(400).json({ success: false, message: result.message });
+  } else {
   try {
     const uploadedFile = req.file;
+    console.log(uploadedFile.mimetype)
+    if (uploadedFile.mimetype != 'application/pdf'){
+      // check if its a pdf
+      return res.status(400).json({ error: 'Currently only pdf file type is supported', message:'Currently only pdf file type is supported' });
+    }
     if (!uploadedFile) {
       return res.status(400).json({ error: 'No file provided', message:'No file provided' });
     }
@@ -48,7 +55,7 @@ apiRoute.post(async (req, res) => {
     console.log('File received:', uploadedFile.originalname);
 
     // get the current docs namespace
-    const customNamespace =`${userId}${filepath.replace("-", "")}`;;
+    const customNamespace =`${userId}${filepath.replace("-", "").replace(/\s/g, "_")}`;;
     const index = pinecone.index('jotdown').namespace(customNamespace)
     let check = false
     const stats = await pinecone.index('jotdown').describeIndexStats();
@@ -67,6 +74,20 @@ apiRoute.post(async (req, res) => {
     if (!check){
      let mongoResponse
       // add to mongodb
+
+        // get client accesstoken from auth0
+        const postData = `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"${process.env.AUTH0_AUD}","grant_type":"client_credentials"}`
+        const headers = {
+            'Content-Type': 'application/json',
+        }
+
+        const response = await axios.post(process.env.AUTH0_TOKEN, postData, { headers });
+
+        // Extract the data from the response
+        const data = response.data;
+        const accessToken = data.access_token // this has the accesstoken
+
+
       try {
         const userRefID = userId
         const docuName = customNamespace
@@ -75,6 +96,7 @@ apiRoute.post(async (req, res) => {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`
           },
           body: JSON.stringify({
               userRefID: userRefID,
@@ -111,8 +133,8 @@ apiRoute.post(async (req, res) => {
 
 
       const splitter = new RecursiveCharacterTextSplitter({
-        chunkSize: 1000,
-        chunkOverlap: 0,
+        chunkSize: 400,//500
+        chunkOverlap: 60,//70
       });
 
       const docOutput = await splitter.splitDocuments([
@@ -160,10 +182,6 @@ apiRoute.post(async (req, res) => {
           console.error('Error during upsert:', error);
           return res.status(400).json({ error: 'pinecone Error', message:'pinecone error' });
       }
-
-
-      
-
     // once all upload complete
       res.status(200).json({
         message: 'File uploaded successfully',
@@ -184,7 +202,9 @@ apiRoute.post(async (req, res) => {
   } catch (error) {
     console.error('Error uploading file:', error);
     res.status(500).json({ error: 'Internal server error', message:'Internal Server error' });
-  }
+  }}
+
+
 });
 
 export default apiRoute.handler();

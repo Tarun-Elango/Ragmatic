@@ -1,5 +1,6 @@
 import connectDB from '../../helper/mongodb';
 import User from '../../models/User';
+import { middleware } from "../../middleware/middleware";
 
 connectDB();
 export const config = {
@@ -9,6 +10,12 @@ export const config = {
 };
 
 export default async function handler(req, res) { 
+  const result = await middleware(req);
+
+  if (!result.success) {
+    res.status(400).json({ success: false, message: result.message });
+  } else {
+
 // get all users
   if (req.method === 'GET') {
     try {
@@ -41,6 +48,7 @@ export default async function handler(req, res) {
     res.status(500).json({error: 'This route method isnt available'})
 
    }
+  }
  //  else if (req.method === 'PATCH'){
   //   const {username} = req.body
   //   try {

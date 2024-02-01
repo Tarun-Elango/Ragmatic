@@ -1,17 +1,56 @@
-// used to call the open ai gpt model 
-// use prompts, agents, memory and langchain
-
-// retrive pinecone embeddings for query, fetch corresponding pages and make query to openai
-
 import { middleware } from "../../middleware/middleware";
 import OpenAI from 'openai';
+import Pages from '../../models/Pages'
 import { pipeline } from '@xenova/transformers'
 import { Pinecone } from '@pinecone-database/pinecone';
 
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY, // This is the default and can be omitted
+  });
+  
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
   environment: process.env.PINECONE_ENVIRONMENT,
 });
+
+
+function dotProduct(vec1, vec2) {
+    let product = 0;
+    for (let i = 0; i < vec1.length; i++) {
+        product += vec1[i] * vec2[i];
+    }
+    return product;
+}
+
+function magnitude(vec) {
+    let sum = 0;
+    for (let i = 0; i < vec.length; i++) {
+        sum += vec[i] ** 2;
+    }
+    return Math.sqrt(sum);
+}
+
+function cosineSimilarity(vec1, vec2) {
+    return dotProduct(vec1, vec2) / (magnitude(vec1) * magnitude(vec2));
+}
+
+function cosineDistance(vec1, vec2) {
+    return 1 - cosineSimilarity(vec1, vec2);
+}
+
+//\n4. Use your knowledge for related questions.
+// For completely Unrelated queries: respond with 'Sorry, please ask a relevant question'
+//.\n5.Refer to past conversations for context.
+
+// create a system for llm to follow using prompt engineering, tools, function calling
+
+//**only if task is big, not needed for small tasks */ prompt chaingin: use llm to break(into several steps using your brain in right order(each task will have its owns topk embeddings)) task into subtasks, llm is prompted with a subtask, and its response is used as for other subtasks until all complete
+// almost like think step by step, but do step by step
+// combine cot with tool use, see if tool is needed when moving to a next step
+//https://www.promptingguide.ai/techniques/prompt_chaining
+
+// tree of thought: each step 3 thoughts take the most sure thought and proceed
+
 
 export default async function handler(req, res) {
     const result = await middleware(req);
@@ -23,90 +62,180 @@ export default async function handler(req, res) {
         res.status(405).end(`Method ${req.method} Not Allowed`);
         return;
       }
+      const userQuery = req.body.prompt
+      const docId = req.body.docId
+      const docName = req.body.docName 
+      const pastMessage = req.body.pMessage
+      const vanillaMode = req.body.vanillaMode
+      const searchMode = req.body.searchMode
+      const calcMode = req.body.calcMode
+      console.log(vanillaMode, searchMode, calcMode)
+       
+  try {
+
+    // if (vanillaMode){
+    //     const pmt = `- User Query: ${userQuery}.-previousRelevantMessage:${pastMessage}.- Instruction to LLM: Answer the users query, think step by step before finalizing your answer, keep the response concise, within 200 words. Refer to the previous relevant message only for context, and if no such message is found, ignore this section.`
+    //     console.log(pmt.length)
+        
+    //     const startTime2 = performance.now();
+
+    //     const chatCompletion = await openai.chat.completions.create({
+    //         messages: [
+    //         {"role": "user", "content": pmt}],
+    //         model: 'gpt-3.5-turbo',
+    //         temperature:0.25,
+    //        // stream: true
+    //       });
+    //     //const SystemContent = "Please understand and respond to user queries while also referring to the content they provide."
+    //     //{"role":"system", "content":SystemContent},
+    //     // Handle each partial response
+    //     //    for await (const response of chatCompletion.iterator()) {
+    //     //         if (response.choices && response.choices.length > 0) {
+    //     //             const delta = response.choices[0].delta;
+    //     //             if (delta && delta.content) {
+    //     //             console.log(delta.content);  // Log the message content
+    //     //             res.status(200).json(delta.content);
+    //     //             }
+    //     //         }
+    //     // }
+
+    //     // console.log(chatCompletion) 
+    //     const endTime2 = performance.now();
+    //     const elapsedTime2 = endTime2 - startTime2;
+    //     console.log(`Execution time gpt api: ${elapsedTime2} milliseconds`);
+    //     const messageContent = chatCompletion.choices[0].message.content;
+    //     res.status(200).json(messageContent);
+    //     return
+
+    // }else{
+        const startTime = performance.now();
+        //get the users embeddings
+        const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small');
+        const embeddingResult = await generateEmbedding(userQuery, {
+            pooling: 'mean',
+            normalize: true,
+        });
     
-      // const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-      // if (!OPENAI_API_KEY) {
-      //   res.status(500).json({ error: 'OpenAI API key not configured' });
-      //   return;
-      // }
+        // Ensure that the output is an array
+        const embedding = Array.from(embeddingResult.data);
     
-      // const openai = new OpenAI(OPENAI_API_KEY);
-      
-      // //get embeddings for req.body.prompt, get embedding search, convert back to text, sned to openai 
-      // const userQuery = req.body.prompt
-      // const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small');
-     try {
-      //   const embeddingResult = await generateEmbedding(userQuery, {
-      //       pooling: 'mean',
-      //       normalize: true,
-      //   });
-    
-      //   // Ensure that the output is an array
-      //   const embedding = Array.from(embeddingResult.data);
-    
-      //   const customNamespace = "auth0|64f945e00f1413519a6c863azurichmasters";
-      //   const index = pinecone.index('jotdown').namespace(customNamespace);
-      //   const queryRequest = {
-      //       vector: embedding,
-      //       topK: 5,
-      //       includeValues: false,
-      //       includeMetadata: true
-      //   };
-      //   const response = await index.query(queryRequest); // Corrected this line
-      //   let mainString = "";
+        const customNamespace = docName;
+        const index = pinecone.index('jotdown').namespace(customNamespace)
+        const stats = await index.describeIndexStats()
+        const namespaceVectorLength = stats.namespaces[customNamespace].recordCount     
 
-      //   // Assuming you have a function `getOriginalTextOrData` that takes an ID and returns the original text
-      //   for (let match of response) {
-      //       let originalText = getOriginalTextOrData(match.id);
-      //       mainString += originalText + " "; // Concatenating with a space for separation
-      //   }
+        let queryRequest={}
+        // Check if the namespace size > 15, and form query accordingly
+        if (namespaceVectorLength > 20) {
+            // get the 2 closet vector
+            queryRequest = {
+                vector: embedding,
+                topK: 20,
+                includeValues: false,
+                includeMetadata: true
+            }
+        } else {
+            // Return a message or handle the case where the namespace is not found
+            // get the 2 closet vector
+            queryRequest = {
+                vector: embedding,
+                topK: namespaceVectorLength,
+                includeValues: false,
+                includeMetadata: true
+            }
+        }
+        
+        const response = await index.query(queryRequest); 
+        const endTime = performance.now();
 
-      //   console.log(mainString);
+        // Calculate the elapsed time
+        const elapsedTime = endTime - startTime;
 
-        //convert embedding back to string
+        const elapsedTimeInSeconds = elapsedTime / 1000;
+        console.log(`Execution time getting pinecone: ${elapsedTimeInSeconds} seconds`);
 
-        // const chatCompletion = await openai.chat.completions.create({
-        //     messages: [ {"role": "system", "content": "Answer to the best of your ability. Always keep response in 1 line."},
-        //     {"role": "user", "content": req.body.prompt}],
-        //     model: 'gpt-3.5-turbo',
-        //   });
+        let startMongo = process.hrtime();
+        // get the pages with given docid and id from pinecone, store in list
+        let queryContent = []
+        try{for (const match of response.matches){
+            //values.id has the page id
+            // and use docid to searh mongo
+            const pageContent = await Pages.find({ document:docId, embeddingsID: match.id })
+            // console.log(counter)
+            // add to queryLust 
+            //queryContent = queryContent + pageContent.PageText
+            const pageObject = pageContent[0];
 
-        //   const messageContent = chatCompletion.choices[0].message.content;
-        const messageContent = "hi there"
+            // Extracting the PageText
+            const pageTextString = pageObject.PageText;
+            const combinedTextString = pageTextString.replace(/\n/g, ' ');
+            
+            queryContent.push(combinedTextString);
+        }}
+        catch(e){
+            console.log(e)
+            res.status(500).json("Could not load your document, please try again.");
+        }
+        let diff = process.hrtime(startMongo);
+        let seconds = diff[0] + diff[1] / 1e9; // Convert nanoseconds to seconds
+        console.log(`Execution time mongo: ${seconds} seconds`);
+        //console.log(queryContent)
+        
+        let startTimeRerank = process.hrtime();
+        // reranking step
+        let rankedContent=""
+        try {
+            const rerankData = {
+                "main_sentence": userQuery,
+                "queries": queryContent
+            }
+            const rerankResponse = await fetch('http://127.0.0.1:5000/predict', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(rerankData),
+            });
 
-        // always return a string, message or no response 
-        res.status(200).json(messageContent);
+            if (!rerankResponse.ok) {
+            throw new Error(`Error: ${rerankResponse.status}`);
+            }
+
+            rankedContent = await rerankResponse.json();
+            // console.log(rerankPythn)
+            //res.status(200).json(rerankPythn);
+        } catch (error) {
+            console.log(error)
+            //res.status(500).json({ message: error.message });
+        }
+        let diffRe = process.hrtime(startTimeRerank);
+        let secondsre = diffRe[0] + diffRe[1] / 1e9; // Convert nanoseconds to seconds
+        console.log(`Execution time rerank: ${secondsre} seconds`);
+
+        //create a final query for llm
+        const pmt = `- User Query: ${userQuery}.- Context from Uploaded Document:${rankedContent}.-previousRelevantMessage:${pastMessage}.- Instruction to LLM: Use the information from the uploaded document, supplemented with your own knowledge, to accurately and comprehensively answer the user's query. If the document lacks sufficient or relevant details, rely on your knowledge base to provide an appropriate response.- Additional Requirements: Keep the response concise, within 200 words. Refer to the previous relevant message only for context, and if no such message is found, ignore this section.`
+      console.log(pmt.length)
+        
+    //     const startTime2 = performance.now();
+
+    //     const chatCompletion = await openai.chat.completions.create({
+    //         messages: [
+    //         {"role": "user", "content": pmt}],
+    //         model: 'gpt-3.5-turbo',
+    //         temperature:0.25,
+    //        // stream: true
+    //       });
+    //     const endTime2 = performance.now();
+    //     const elapsedTime2 = endTime2 - startTime2;
+    //     console.log(`Execution time gpt api: ${elapsedTime2} milliseconds`);
+    //    const messageContent = chatCompletion.choices[0].message.content;
+       res.status(200).json(pmt);
+
+   //}  
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ err });
     }
     
     }
 }
-/** sample response
- * 
- * {
-    "id": "chatcmpl-8gaO8rQK5o8vboIedSpVwjMa6kBgA",
-    "object": "chat.completion",
-    "created": 1705160344,
-    "model": "gpt-3.5-turbo-0613",
-    "choices": [
-        {
-            "index": 0,
-            "message": {
-                "role": "assistant",
-                "content": "Bonjour, comment ça va ?"
-            },
-            "logprobs": null,
-            "finish_reason": "stop"
-        }
-    ],
-    "usage": {
-        "prompt_tokens": 42,
-        "completion_tokens": 6,
-        "total_tokens": 48
-    },
-    "system_fingerprint": null
-}
- */
-

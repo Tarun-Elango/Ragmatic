@@ -46,6 +46,7 @@ function UploadModal(props){
     setPdfText('');
     setFile(null);
     setManualLoading(true)
+        
     try {
       // set the loading symbol
       // process the pdf and send to pinecone, namespace (i.e pinecone docuname) = user id + pdf name
@@ -53,9 +54,12 @@ function UploadModal(props){
       formData.append('file', file);
       const userId = user.sub
       formData.append('userId', userId)
-      // call this endpooint to store the file after upload
+      // call this endpoint to store the file after upload
       const response = await fetch('/api/parse', {
         method: 'POST',
+        headers: {
+              'Authorization': `Bearer ${props.acToken}`
+            },
         body: formData
       });
       // Parse the response body as JSON

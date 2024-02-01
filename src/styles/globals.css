@@ -45,11 +45,25 @@ body, .main-container {
 }
 
 
+.custom-placeholder::placeholder {
+  color: #ffffff; /* Replace #YourColor with the color you want */
+}
 @media (max-width: 600px) {
   /* Add the styles for smaller screens here */
   h3 {
       /* Example styles for smaller screens */
       font-size: '0.1em'
   }
+}
+/* styles/global.css */
+@font-face {
+  font-family: 'Roboto Mono';
+  src: url('../fonts/RobotoMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+body {
+  font-family: 'Roboto Mono', monospace;
 }
 
