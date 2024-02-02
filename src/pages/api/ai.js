@@ -215,23 +215,9 @@ export default async function handler(req, res) {
         //create a final query for llm
         const pmt = `- User Query: ${userQuery}.- Context from Uploaded Document:${rankedContent}.-previousRelevantMessage:${pastMessage}.- Instruction to LLM: Use the information from the uploaded document, supplemented with your own knowledge, to accurately and comprehensively answer the user's query. If the document lacks sufficient or relevant details, rely on your knowledge base to provide an appropriate response.- Additional Requirements: Keep the response concise, within 200 words. Refer to the previous relevant message only for context, and if no such message is found, ignore this section.`
       console.log(pmt.length)
-        
-    //     const startTime2 = performance.now();
 
-    //     const chatCompletion = await openai.chat.completions.create({
-    //         messages: [
-    //         {"role": "user", "content": pmt}],
-    //         model: 'gpt-3.5-turbo',
-    //         temperature:0.25,
-    //        // stream: true
-    //       });
-    //     const endTime2 = performance.now();
-    //     const elapsedTime2 = endTime2 - startTime2;
-    //     console.log(`Execution time gpt api: ${elapsedTime2} milliseconds`);
-    //    const messageContent = chatCompletion.choices[0].message.content;
        res.status(200).json(pmt);
 
-   //}  
     } catch (err) {
         console.error(err);
         res.status(500).json({ err });

@@ -14,45 +14,6 @@ import ChatLoading from '../components/ChatLoading'
 import Guest from './guest'
 import io from 'socket.io-client';
 
-//MVP:
-// socket edge cases security, supabase create seperate functions
-// vanilla mode on python
-// integrate format ui after it shows up on the ui
-// account and settings (account info, current plan info, delete plan), upgrade page to stripe. add field in user mongo tier(paid/no/paid until x) + field to store subs time period/ update after each payment, seperate endpoint to handle subs transaction + email + unsub + track
-// email stuff ( add email when users subsribes  and unsubsribes )
-// make ui responsive to zoom/phone, put css in css file
-// rate limit messages doc uploaded, 2 docs/account max,
-// when users idtoken is expired force user to logout, getsession has it
-// check routes for security, review ui functions, states, and const (if they are handled correctly), clean code eddge cases for ui messages/chat/docs, make a flow chart for all ui functions (check correctness) and add comments + clean code along the way
-// clean code and routes
-
-// deploy, put python on lambda
-// flush database and test all features for a user
-// get a domain and add to it
-
-// TODO: 
-// secuirty when reading file, not to read virus or something
-// past memory divide each user+ai into 2, try different combos like all userquers send + most relevant answer (where each answer is divided by 2 or 3) or summary using a small model
-// change to good embedding model, text emb model small 
-// cascade method, llm router classification different task different ai model, and a lot more prompt engineering and conditional flow for different scenario(), change the format of storing/retreiving past messages. train a model on user queries with output hard or not hard or medium etc and use its output for the actal model
-// llm lingua reduce noise and words that are reduncdant
-// support more file types word, text files, text area, excel, images, url, youtube video, music/mp3, mp4
-// try changing different text splitting parameters, and how its stored
-// in chat box show a multipurpose code box, with code, image, mp3, mp4/youtube
-// use prompts, agents, option to explain with dall e (in the chat box top show option to explain with dropdown or buttons, like use tools shows up after an answer, andcan re answer with the tool. or keep it in the input box
-// show sources for answer, Need to find a solution (leverage how text is divided, how text is stored, how to link it once the llm provides an answer. force llm to output json with the text snippet where it got it from), 
-// improve css on chat component (icon to take to bottom of the chat)
-// create hooks for all fetch 
-
-// future:
-// supabase (data, auth, vector)
-// chat works for a good high level closest message, but it does not track the entire history hence context isn't complete. (last n, summary, try these with vector)
-// speed responses High historical similarities (based on a minimum threshold) represent opportunities to regurgitate previous inference responses
-// change logic of the ai. send context get response, loop this until the ai is convinced user query is meet or the next context is irrelevant
-// drop cosine search in ai to cross encoder
-
-// bring your data -> upload -> press ok -> get your custom trained model in hrs. 
-
 export default function Home({accessToken}) {
 
   // This module is used to display a notifi
@@ -223,7 +184,7 @@ export default function Home({accessToken}) {
           }
       
           const data = await response.json();
-          console.log(data)
+          //console.log(data)
           // if good do nothing
         } catch (error) {
           console.error('Error:', error);
@@ -343,46 +304,84 @@ export default function Home({accessToken}) {
     return <div dangerouslySetInnerHTML={{ __html: text }}></div>;
   };
 
+  const supaBeforeAi=async (id, )=>{
+    let supabasePast = ""
+    const getPastMessage={
+      chatId:id,
+      userQuery:inputText
+    }
+    try {
+      const responseSupaGet = await fetch(`/api/chatVector`, {
+        method: 'POST',
+        headers: {
+            'Content-Type':'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(getPastMessage)
+      })
+      if (!responseSupaGet.ok) {
+          throw new Error(`HTTP error! status: ${responseSupaGet.status}`);
+      }
+      supabasePast = await responseSupaGet.json();
+      return supabasePast
+    } catch (error) {console.log('could not receive past message')}
+    
+  }
+
+  const postAiSupabase =async (responseMessage,id)=>{
+    // send to supabase the user query and the response. for vector storage
+   // after the users query has been answered sucessfully
+   const combinedString = inputText+ responseMessage.text // the most recent user+ai message combo
+   //console.log(combinedString)
+   // call the api with chatid and combined string
+   const storePastMessage={
+     chatId:id,
+     combinedMessage:combinedString
+   }
+   try {
+     const responseSupaStore = await fetch(`/api/chatVector`, {
+       method: 'POST',
+       headers: {
+           'Content-Type':'application/json',
+           'Authorization': `Bearer ${token}`
+       },
+       body: JSON.stringify(storePastMessage)
+     })
+     if (!responseSupaStore.ok) {
+         throw new Error(`HTTP error! status: ${responseSupaStore.status}`);
+     }
+     const checkIfMessageStored =  await responseSupaStore.json();
+   //console.log(checkIfMessageStored)// has the most relevant past message
+   } catch (error) {console.log('could not receive past message')}
+ }
+
   const [isAiLoading, setIsAiLoading]= useState(false)
   const [socket, setSocket] = useState(null);
+
   const fetchAiResponse = async (id) => {
     let responseMessage =""
     
-    let supabasePast = ""
+    let supabasePastRetreive = ""
     if(messageList.length >0){
     // retreive past relevant message
-      // call api with chat id and input text
-      const getPastMessage={
-        chatId:id,
-        userQuery:inputText
-      }
-      try {
-        const responseSupaGet = await fetch(`/api/chatVector`, {
-          method: 'POST',
-          headers: {
-              'Content-Type':'application/json',
-              'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(getPastMessage)
-        })
-        if (!responseSupaGet.ok) {
-            throw new Error(`HTTP error! status: ${responseSupaGet.status}`);
-        }
-        supabasePast = await responseSupaGet.json();
-      } catch (error) {console.log('could not receive past message')}
+    supabasePastRetreive = supaBeforeAi(id)
     }
 
     setIsAiLoading(true)
+    let dataPmt = ""
+
+    // get the complete prompt
       try {
+        if (!isVanillaMode){
           const openAiData = {
-              prompt:inputText,
-              docId: docArray[currentDocuIndex].docuId,
-              docName: docArray[currentDocuIndex].docuName,
-              pMessage: supabasePast.length === 0 ? "none" : supabasePast.message,
-              vanillaMode:isVanillaMode,
-              searchMode:isSearchActive,
-              calcMode:isCalculatorActive
-            }
+            prompt:inputText,
+            docId: docArray[currentDocuIndex].docuId,
+            docName: docArray[currentDocuIndex].docuName,
+            pMessage: supabasePastRetreive.length === 0 ? "none" : supabasePastRetreive.message,
+            vanillaMode:isVanillaMode,
+            searchMode:isSearchActive,
+            calcMode:isCalculatorActive
+          }
           const apiFetch = await fetch('api/ai', {
               method: 'POST',
               headers: {
@@ -391,47 +390,81 @@ export default function Home({accessToken}) {
               },
               body: JSON.stringify(openAiData)
             });
-          const dataPmt = await apiFetch.json(); // has the pmt
-          
-          ///////////////////////////////////
-          let currentAIMessage = ""
-          const timestp = new Date().toISOString
-          const initalMes = {
-            text: currentAIMessage,
-            timestamp:timestp,
-            align:'left',  
-          }
-          const initialEmpty = {
-            ...initalMes,
-            timestp,
-            type: "ai"
+          dataPmt = await apiFetch.json(); // has the pmt
+        } else {
+          dataPmt = inputText
+        }
+
+        // get the response from open ai using sockets
+        let currentAIMessage = ""
+        const timestp = new Date().toISOString
+        const initalMes = {
+          text: currentAIMessage,
+          timestamp:timestp,
+          align:'left',  
+        }
+
+        const initialEmpty = {
+          ...initalMes,
+          timestp,
+          type: "ai"
         };
-        setMessageList((prevMessages)=>[...prevMessages, initialEmpty]) // 
-          if (!socket) { // Check if the socket is not already connected
-            const newSocket = io('http://localhost:5000');
-            console.log('Connected');
 
-            newSocket.on('message', (data) => {
+        setMessageList((prevMessages)=>[...prevMessages, initialEmpty]) 
+        //---------------------------------------------------------------- socket start ------------------------------------------------------------
+        if (!socket) { // Check if the socket is not already connected
 
-              setMessageList((prevMessages) => {
-                currentAIMessage  = currentAIMessage+ data.data
-                const lastString =  prevMessages[prevMessages.length - 1] ;
-                const updatedLastString = lastString.text + data.data;
-                return [...prevMessages.slice(0, prevMessages.length - 1),
-                  {...lastString, text:updatedLastString}];
-              });
+          // create a new connection, with token
+          const newSocket = io('http://localhost:5000',{
+            query:{acctoken:token}
+          });
+            
+          newSocket.on('error', (data) => {
 
-              //setMessages((prevMessages) => [...prevMessages, data.data]);
-              console.log('message received')
+            // add the error to the message list
+            setMessageList((prevMessages) => {
+            
+              currentAIMessage  = currentAIMessage+ data.data
+              const lastString =  prevMessages[prevMessages.length - 1] ;
+              const updatedLastString = lastString.text + data.data;
+              return [...prevMessages.slice(0, prevMessages.length - 1),
+                {...lastString, text:updatedLastString}];
+
             });
-        
 
-            newSocket.on('disconnect', async () => {
-              setMessageList((prevMessages) => {
-                const lastMessage = prevMessages[prevMessages.length - 1];
-                console.log(lastMessage.text); // Print the entire previous message
-                // call mongo store function
-              // send to mongo
+            // finsish the message processing 
+            setIsAiLoading(false)
+            openNotification('Invalid token, please login again')
+            console.log('Disconnected by the server');
+            setSocket(null);
+            // shut off the socket
+            newSocket.emit('trigger_disconnect') //way to tell the server to disconnect
+            // router.push('/api/auth/logout')
+          })
+
+          newSocket.on('message', (data) => {
+    
+            // add messsage, weird way, hence be careful
+            setMessageList((prevMessages) => {
+              currentAIMessage  = currentAIMessage+ data.data
+              const lastString =  prevMessages[prevMessages.length - 1] ;
+              const updatedLastString = lastString.text + data.data;
+              return [...prevMessages.slice(0, prevMessages.length - 1),
+                {...lastString, text:updatedLastString}];
+            });
+
+            console.log('message received')
+          });
+        
+          newSocket.on('disconnect', async () => {
+            // on disconnect
+
+            // retrieve the last complete message
+            setMessageList((prevMessages) => {
+              const lastMessage = prevMessages[prevMessages.length - 1];
+              //console.log(lastMessage.text); // Print the entire previous message
+              
+              // call mongo store function
               responseMessage = {
                 text:lastMessage.text,
                 timestamp: new Date().toLocaleString(),
@@ -440,64 +473,77 @@ export default function Home({accessToken}) {
 
               //addMessage(responseMessage, "ai")
               //console.log(responseMessage.text, "botMessage", currentChat.id)
-              addMessageMongo(responseMessage.text, "botMessage", id)
               // add to users chat 
-                newSocket.off('disconnect'); // Remove the disconnect event listener after it has been executed once
-        
-                return prevMessages; // Return the previous messages without modification
-              });
-                  
-                   
-                  
-                    // send to supabase
-                    // after the users query has been answered sucessfully
-                    const combinedString = inputText+ responseMessage.text // the most recent user+ai message combo
-                    // call the api with chatid and combined string
-                    const storePastMessage={
-                      chatId:id,
-                      combinedMessage:combinedString
-                    }
-                    try {
-                      const responseSupaStore = await fetch(`/api/chatVector`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type':'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify(storePastMessage)
-                      })
-                      if (!responseSupaStore.ok) {
-                          throw new Error(`HTTP error! status: ${responseSupaStore.status}`);
-                      }
-                      const checkIfMessageStored =  await responseSupaStore.json();
-                    console.log(checkIfMessageStored)// has the most relevant past message
-                    } catch (error) {console.log('could not receive past message')}
-                    setIsAiLoading(false)
-                    console.log('Disconnected by the server');
-                    setSocket(null); // Reset the socket state to allow reconnection
-            });
+              addMessageMongo(responseMessage.text, "botMessage", id)
               
-            setSocket(newSocket);
+              // add the current user+ai to supabase
+              postAiSupabase(responseMessage, id)
+              newSocket.off('disconnect'); // Remove the disconnect event listener after it has been executed once
+      
+              return prevMessages; // Return the previous messages without modification
+            });
 
-            newSocket.emit('start', dataPmt);
-            console.log('Started');
-            }
-          ///////////////////////////////////
+            // finish the message retireval process on the ui
+            setIsAiLoading(false)
+            console.log('Disconnected by the server');
+            setSocket(null); // Reset the socket state to allow reconnection
+          });
           
-         // const formattedResponse = formatOpenAiResponse(JSON.stringify(data).slice(1, -1));
+          // set the socket connection
+          setSocket(newSocket);
 
-          
-
-          
-
+          //start the socket connection
+          newSocket.emit('start', dataPmt);
+          console.log('Started');
+        }
+        //---------------------------------------------------------------- socket end ------------------------------------------------------------
+        // const formattedResponse = formatOpenAiResponse(JSON.stringify(data).slice(1, -1));
       } catch (error) {
           openNotification(' Failed to receive a response.');
           console.error('Error fetching response:', error);
       }
-      
-
-
   };
+
+
+  const handleStopButtonClick = async () => { 
+    
+    if (socket) {
+      //finish the message retireval on ui
+      setIsAiLoading(false)
+      //console.log(messages)
+
+      //stop the socket from client
+      socket.disconnect(); //way to 
+      console.log('Connection manually closed');
+      setSocket(null); // Reset the socket state after disconnection
+
+      // save mongo
+      // save supabase post ai
+
+      // setMessageList((prevMessages) => {
+      //   const lastMessage = prevMessages[prevMessages.length - 1];
+      //   //console.log(lastMessage.text); // Print the entire previous message
+        
+      //   // call mongo store function
+      //   responseMessage = {
+      //     text:lastMessage.text,
+      //     timestamp: new Date().toLocaleString(),
+      //     align: 'left',
+      //   };
+
+      //   //addMessage(responseMessage, "ai")
+      //   //console.log(responseMessage.text, "botMessage", currentChat.id)
+      //   // add to users chat 
+      //   addMessageMongo(responseMessage.text, "botMessage", id)
+        
+      //   // add the current user+ai to supabase
+      //   postAiSupabase(responseMessage, id)
+      //   newSocket.off('disconnect'); // Remove the disconnect event listener after it has been executed once
+
+      //   return prevMessages; // Return the previous messages without modification
+      // });
+    }
+  }
 
   const handleInputChangeTextArea = (e) => {
       setInputText(e.target.value);
@@ -515,6 +561,7 @@ export default function Home({accessToken}) {
 
   // function to handle chat list and its selection
   const handleChatHistoryClick = async (chatId) => {
+    console.log(chatId)
     // when we select a new chat
       clearMessageList()
       
@@ -562,6 +609,8 @@ export default function Home({accessToken}) {
       }
   };
     
+
+
   //   // useEffect hook to log the current chat id when it changes
   // useEffect(() => {
   //     if (currentChat && currentChat.id) {
@@ -1088,27 +1137,47 @@ export default function Home({accessToken}) {
                     autoSize={{ minRows: textAreaRows, maxRows: textAreaRows }}
                   />
                   
-              
-                    <Button
-                      onClick={handleButtonClick}
-                      style={{
-                        marginLeft: '1vw', // Relative to the width of the viewport
-                        backgroundColor: '#7ce38b',
-                        border: 'none', // Assuming you want no border; change if needed
-                        borderRadius: '50px', // Large enough value to create pill shape
-                        fontSize: '1em', // Scales with the font size of the document
-                        height: '5vh', // Relative to the height of the viewport
-                        padding: '1vh 2vw', // Vertical padding relative to height, horizontal padding relative to width
-                        boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)', // Optional: adds a slight shadow for depth
-                        display: 'flex', // Enables the use of Flexbox for centering
-                        alignItems: 'center', // Centers content vertically within the button
-                        justifyContent: 'center', // Centers content horizontally within the button
-                        whiteSpace: 'nowrap' // Prevents the text from wrapping
-                      }}
-                      disabled={isButtonDisabled}
-                    >
-                      Send
-                    </Button>
+                  {isAiLoading ? (<Button
+                    onClick={handleStopButtonClick}
+                    style={{
+                      marginLeft: '1vw', // Relative to the width of the viewport
+                      backgroundColor: '#eb2d3a',
+                      border: 'none', // Assuming you want no border; change if needed
+                      borderRadius: '50px', // Large enough value to create pill shape
+                      fontSize: '1em', // Scales with the font size of the document
+                      height: '5vh', // Relative to the height of the viewport
+                      padding: '1vh 2vw', // Vertical padding relative to height, horizontal padding relative to width
+                      boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)', // Optional: adds a slight shadow for depth
+                      display: 'flex', // Enables the use of Flexbox for centering
+                      alignItems: 'center', // Centers content vertically within the button
+                      justifyContent: 'center', // Centers content horizontally within the button
+                      whiteSpace: 'nowrap' // Prevents the text from wrapping
+                    }}
+                  >
+                    Stop
+                  </Button>):(<Button
+                    onClick={handleButtonClick}
+                    style={{
+                      marginLeft: '1vw', // Relative to the width of the viewport
+                      backgroundColor: '#7ce38b',
+                      border: 'none', // Assuming you want no border; change if needed
+                      borderRadius: '50px', // Large enough value to create pill shape
+                      fontSize: '1em', // Scales with the font size of the document
+                      height: '5vh', // Relative to the height of the viewport
+                      padding: '1vh 2vw', // Vertical padding relative to height, horizontal padding relative to width
+                      boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)', // Optional: adds a slight shadow for depth
+                      display: 'flex', // Enables the use of Flexbox for centering
+                      alignItems: 'center', // Centers content vertically within the button
+                      justifyContent: 'center', // Centers content horizontally within the button
+                      whiteSpace: 'nowrap' // Prevents the text from wrapping
+                    }}
+                    disabled={isButtonDisabled}
+                  >
+                    Send
+                  </Button>)}
+                    
+          
+                    
                 </div>
                         <div style={{ 
                             display: 'flex', 
@@ -1296,7 +1365,7 @@ export const getServerSideProps = async (context) => {
         const data = response.data;
         const accessToken = data.access_token
 
-        //console.log(accessToken)
+        console.log(accessToken)
 
         // Pass data to the page via props
         return { props: { accessToken } };

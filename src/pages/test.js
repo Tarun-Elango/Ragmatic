@@ -67,6 +67,8 @@ export default function Stream() {
       socket.disconnect();
       console.log('Connection manually closed');
       setSocket(null); // Reset the socket state after disconnection
+
+
     }
     
   };
