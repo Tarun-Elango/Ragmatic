@@ -6,7 +6,9 @@ from sentence_transformers import CrossEncoder
 from openai import OpenAI
 from tokenValidator import authenticate_request
 import time
+import tiktoken
 import os
+
 os.environ["OPENAI_API_KEY"] = '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'
 client = OpenAI(
     # This is the default and can be omitted
@@ -16,6 +18,11 @@ model = CrossEncoder('cross-encoder/ms-marco-electra-base')
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 socketio = SocketIO(app, cors_allowed_origins="*")  # Adjust CORS as necessary
+
+def num_tokens_from_string(string: str, encoding_name: str) -> int:
+    encoding = tiktoken.get_encoding(encoding_name)
+    num_tokens = len(encoding.encode(string))
+    return num_tokens
 
 def send_message(message):
     stream = client.chat.completions.create(
@@ -59,7 +66,7 @@ def trigger_disconnect():
 
 @socketio.on('start')
 def handle_start(message):
-    print(message)
+    print('number of tokens:',num_tokens_from_string(message, "cl100k_base"))
     send_message(message)
     disconnect()
 
@@ -79,6 +86,7 @@ def predict():
     #print(scores)
 
     # Determine the number of top scores to return
+    # at 5 we are about 600 tokens
     top_scores_count = min(5, len(queries))
 
     # Sort scores and select top scores

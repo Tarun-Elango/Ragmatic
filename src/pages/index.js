@@ -297,36 +297,12 @@ export default function Home({accessToken}) {
     });
 
     return formattedText;
-}
+  }
 
   // for the html component
   const FormattedMessage = ({ text }) => {
     return <div dangerouslySetInnerHTML={{ __html: text }}></div>;
   };
-
-  const supaBeforeAi=async (id, )=>{
-    let supabasePast = ""
-    const getPastMessage={
-      chatId:id,
-      userQuery:inputText
-    }
-    try {
-      const responseSupaGet = await fetch(`/api/chatVector`, {
-        method: 'POST',
-        headers: {
-            'Content-Type':'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(getPastMessage)
-      })
-      if (!responseSupaGet.ok) {
-          throw new Error(`HTTP error! status: ${responseSupaGet.status}`);
-      }
-      supabasePast = await responseSupaGet.json();
-      return supabasePast
-    } catch (error) {console.log('could not receive past message')}
-    
-  }
 
   const postAiSupabase =async (responseMessage,id)=>{
     // send to supabase the user query and the response. for vector storage
@@ -363,8 +339,26 @@ export default function Home({accessToken}) {
     
     let supabasePastRetreive = ""
     if(messageList.length >0){
-    // retreive past relevant message
-    supabasePastRetreive = supaBeforeAi(id)
+      // retreive past relevant message
+      const getPastMessage={
+        chatId:id,
+        userQuery:inputText
+      }
+      try {
+        const responseSupaGet = await fetch(`/api/chatVector`, {
+          method: 'POST',
+          headers: {
+              'Content-Type':'application/json',
+              'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(getPastMessage)
+        })
+        if (!responseSupaGet.ok) {
+            throw new Error(`HTTP error! status: ${responseSupaGet.status}`);
+        }
+        supabasePastRetreive = await responseSupaGet.json();
+        
+      } catch (error) {console.log('could not receive past message')}
     }
 
     setIsAiLoading(true)
@@ -378,9 +372,6 @@ export default function Home({accessToken}) {
             docId: docArray[currentDocuIndex].docuId,
             docName: docArray[currentDocuIndex].docuName,
             pMessage: supabasePastRetreive.length === 0 ? "none" : supabasePastRetreive.message,
-            vanillaMode:isVanillaMode,
-            searchMode:isSearchActive,
-            calcMode:isCalculatorActive
           }
           const apiFetch = await fetch('api/ai', {
               method: 'POST',
@@ -392,7 +383,7 @@ export default function Home({accessToken}) {
             });
           dataPmt = await apiFetch.json(); // has the pmt
         } else {
-          dataPmt = inputText
+          dataPmt = `- User Query: ${inputText}.--previousRelevantMessage:${supabasePastRetreive.message}.- Instruction to LLM: - Respond to user query. - Think step by step before answering. - Keep the response concise, within 200 words. - Refer to the previous relevant message only for context, and if no such message is found, ignore this section.`
         }
 
         // get the response from open ai using sockets
@@ -1092,6 +1083,9 @@ export default function Home({accessToken}) {
                       const senderLabel = isUserMessage ? 'User' : 'AI';
                       const senderColor = isUserMessage ? '#f0f0f0' : 'white';
 
+                      // Check if the sender is AI and apply the formatting function
+                      let messageText = senderLabel === 'AI' ? formatOpenAiResponse(message.text) : message.text;
+
                       return (
                         <div key={index} style={{ textAlign: messageSide }}>
                           <div style={{
@@ -1112,8 +1106,8 @@ export default function Home({accessToken}) {
                             marginLeft: isUserMessage ? '20%' : '0',
                             marginRight: isUserMessage ? '0' : '20%',
                             wordBreak: 'break-word'
-                          }}>
-                            <FormattedMessage text={message.text} />
+                          }} >  
+                            <FormattedMessage text={messageText} />
                           </div>
                         </div>
                       );

@@ -65,50 +65,10 @@ export default async function handler(req, res) {
       const userQuery = req.body.prompt
       const docId = req.body.docId
       const docName = req.body.docName 
-      const pastMessage = req.body.pMessage
-      const vanillaMode = req.body.vanillaMode
-      const searchMode = req.body.searchMode
-      const calcMode = req.body.calcMode
-      console.log(vanillaMode, searchMode, calcMode)
-       
+      const pastMessage = req.body.pMessage  
   try {
-
-    // if (vanillaMode){
-    //     const pmt = `- User Query: ${userQuery}.-previousRelevantMessage:${pastMessage}.- Instruction to LLM: Answer the users query, think step by step before finalizing your answer, keep the response concise, within 200 words. Refer to the previous relevant message only for context, and if no such message is found, ignore this section.`
-    //     console.log(pmt.length)
-        
-    //     const startTime2 = performance.now();
-
-    //     const chatCompletion = await openai.chat.completions.create({
-    //         messages: [
-    //         {"role": "user", "content": pmt}],
-    //         model: 'gpt-3.5-turbo',
-    //         temperature:0.25,
-    //        // stream: true
-    //       });
-    //     //const SystemContent = "Please understand and respond to user queries while also referring to the content they provide."
-    //     //{"role":"system", "content":SystemContent},
-    //     // Handle each partial response
-    //     //    for await (const response of chatCompletion.iterator()) {
-    //     //         if (response.choices && response.choices.length > 0) {
-    //     //             const delta = response.choices[0].delta;
-    //     //             if (delta && delta.content) {
-    //     //             console.log(delta.content);  // Log the message content
-    //     //             res.status(200).json(delta.content);
-    //     //             }
-    //     //         }
-    //     // }
-
-    //     // console.log(chatCompletion) 
-    //     const endTime2 = performance.now();
-    //     const elapsedTime2 = endTime2 - startTime2;
-    //     console.log(`Execution time gpt api: ${elapsedTime2} milliseconds`);
-    //     const messageContent = chatCompletion.choices[0].message.content;
-    //     res.status(200).json(messageContent);
-    //     return
-
-    // }else{
         const startTime = performance.now();
+
         //get the users embeddings
         const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small');
         const embeddingResult = await generateEmbedding(userQuery, {
@@ -125,6 +85,7 @@ export default async function handler(req, res) {
         const namespaceVectorLength = stats.namespaces[customNamespace].recordCount     
 
         let queryRequest={}
+
         // Check if the namespace size > 15, and form query accordingly
         if (namespaceVectorLength > 20) {
             // get the 2 closet vector
@@ -214,9 +175,9 @@ export default async function handler(req, res) {
 
         //create a final query for llm
         const pmt = `- User Query: ${userQuery}.- Context from Uploaded Document:${rankedContent}.-previousRelevantMessage:${pastMessage}.- Instruction to LLM: Use the information from the uploaded document, supplemented with your own knowledge, to accurately and comprehensively answer the user's query. If the document lacks sufficient or relevant details, rely on your knowledge base to provide an appropriate response.- Additional Requirements: Keep the response concise, within 200 words. Refer to the previous relevant message only for context, and if no such message is found, ignore this section.`
-      console.log(pmt.length)
+        console.log(pmt.length)
 
-       res.status(200).json(pmt);
+        res.status(200).json(pmt);
 
     } catch (err) {
         console.error(err);
