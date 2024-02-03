@@ -1,253 +1,100 @@
-import React, { useEffect, useState } from 'react';
-import Head from 'next/head'
+import {  InfoCircleOutlined } from '@ant-design/icons';
+import { Tooltip, } from 'antd';
+import React, {  useState } from 'react';
 import { useRouter } from 'next/router';
-import {  UserOutlined, InfoCircleOutlined, PlusCircleOutlined, DoubleLeftOutlined,DoubleRightOutlined, UploadOutlined } from '@ant-design/icons';
-import { Button, Input,Tooltip, Menu   } from 'antd';
+import Head from 'next/head'
+import styles from '../styles/guest.module.css'
 import logo from '../../public/logo.png'
 import Image from 'next/image';
-import styles from '../styles/guest.module.css';
 import AboutModal from '../components/modals/AboutModal'
 
-
-
-// TODO: change font, change text that shows up to the left and add type animations
 export default function Guest () {
   const router = useRouter();
-  const text = "Login to get Started !!!";
+  const handleLogin = () => {
+    router.push('/api/auth/login')
+  };
+  
   const about ="More info"
-  const vanilla =<span>Use AI without needing to upload anything.</span>
+  const vanilla =<span>Have a regular conversation with an AI.</span>
   const custom = <span>AI will answer queries, based on the uploaded resource.</span>
   const [isAboutGuestOpen, setIsAboutGuestOpen] = useState(false)
-  const [currentText, setCurrentText] = useState('');
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const delay = 50
-  useEffect(() => {
-    if (currentIndex < text.length) {
-      const timeout = setTimeout(() => {
-        setCurrentText(prevText => prevText + text[currentIndex]);
-        setCurrentIndex(prevIndex => prevIndex + 1);
-      }, delay);
-  
-      return () => clearTimeout(timeout);
-    }
-  }, [currentIndex, delay, text]);
-
-
-    const handleLogin = () => {
-      router.push('/api/auth/login')
-    };
-    
-    const [textAreaRows, setTextAreaRows] = useState(2);
-    const phrases =["Upload pdfs.","Upload word doc", "Upload text files", "More file types coming soon!!"]
-
 return(<>
-      <Head>
-          <title>JotDownAI</title>
-          <meta name="description" content="JotDown - An AI document Assitant." />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0, "/>
-          <link rel="icon" href="/favicon.ico" />
-      </Head>
 
-  <div style={{ display: 'flex', height: '100vh', backgroundColor: '#21262d' }}>
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <div style={{ maxHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#21262d', padding: '10px', overflow: 'auto' }}>
-      
-              {/* Header */}
-              <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', width: '100%', height: '7.5vh' }}>
-                  <div style={{ flex: '0 0 auto', height: '3.25vh', marginLeft: '20px', marginTop: '-27.5px' }}>
-                      <a>
-                          <Image
-                              src={logo} // Path to your image in the public folder
-                              width={100} // Set the width of the image
-                              height={10} // Set the height of the image
-                              alt=""
-                              style={{
-                                maxWidth: '50%',
-                                height: 'auto',
-                              }}
-                          />
-                      </a>
-                  </div>
-                  
-                <div className='name'>
-                  <h3>
-                    <strong >JotDownAI</strong> <Tooltip placement="bottom" title={about}>
-                              <InfoCircleOutlined style={{marginLeft:'15px'}} onClick={()=>setIsAboutGuestOpen(true)}/>
-                          </Tooltip>
-                  </h3> 
-                </div>
-              </div>
+<Head>
+    <title>JotDownAI</title>
+    <meta name="description" content="JotDown - An AI document Assitant." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, "/>
+    <link rel="icon" href="/favicon.ico" />
+</Head>
 
+<div className={styles.container}>
+    <header className={styles.header}>
+    <a>
+      <Image
+        src={logo} // Path to your image in the public folder
+        width="50" // Set the width of the image similar to the SVG width
+        height="50" // Set the height of the image similar to the SVG height
+        alt=""
+        style={{
+          paddingBottom:'5vh',
+          display: 'block', // Ensures the image is a block-level element, similar to the default SVG behavior
+          maxWidth: '100%', // Ensures the image scales within its container
+          height: 'auto', // Maintains aspect ratio
+          stroke: 'currentColor', // SVG property, not applicable to bitmap images but kept for consistency
+          strokeWidth: '2', // SVG property, not applicable to bitmap images but kept for consistency
+          strokeLinecap: 'round', // SVG property, not applicable to bitmap images but kept for consistency
+          strokeLinejoin: 'round', // SVG property, not applicable to bitmap images but kept for consistency
+          color: 'red', // Assuming you want to apply a red color filter to your image, though this may not have the desired effect without further CSS or SVG filters
+          className: 'h-8 w-8 text-red-500' // Tailwind CSS classes for height, width, and text color, which might not apply directly to images
+        }}
+      />
+    </a>
 
-              {/*body */}
-              <div style={{
-                height: '82.5vh',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start', // Aligns children to the left
-                borderRadius: '10px',
-                backgroundColor: '#36373A',
-                marginTop: '15px',
-                border: '1px solid black',
-                padding: '15px',
-                paddingTop:'30px',
-                paddingLeft: '35px', // Increased left padding for more space
-                width: '100%',
-                boxSizing: 'border-box',
-            }}>
-              <p style={{
-                  margin: '0 0 10px 0',
-                  fontSize: '20px',
-                  fontWeight: '600',
-                  lineHeight: '1.6',
-                  color: '#ffffff',
-                  textAlign: 'left',
-              }}></p>
-              <p style={{
-                  margin: '10px 0 0 0',
-                  fontSize: '20px',
-                  fontWeight: 'bold',
-                  lineHeight: '1.5',
-                  color: '#E6735C',
-                  animation: 'pulse 2s infinite',
-                  textAlign: 'left',
-              }}>
-                  <strong>Resource-Tailored AI ChatBot.</strong>
-              </p>
-              <p style={{
-                  margin: '15px 0 0 0',
-                  fontSize: '18px',
-                  fontWeight: '500',
-                  lineHeight: '1.5',
-                  color: '#C0C0C0',
-                  textAlign: 'left',
-              }}>
-                  <Tooltip placement="bottom" title={custom}><strong>Upload Resources</strong></Tooltip> -&gt; Get Your Custom AI Assistant.
-              </p>
-              <p style={{
-                  margin: '15px 0 15px 0',
-                  fontSize: '18px',
-                  fontWeight: '500',
-                  lineHeight: '1.5',
-                  color: '#C0C0C0',
-                  textAlign: 'left',
-              }}>
-                 Includes <Tooltip placement="bottom" title={vanilla}><strong>Vanilla AI Chatbot</strong> </Tooltip>
-              </p>
-              <p style={{
-                  margin: '15px 0 15px 0',
-                  fontSize: '18px',
-                  fontWeight: '500',
-                  lineHeight: '1.5',
-                  color: '#C0C0C0',
-                  marginBottom: '20px',
-                  textAlign: 'left',
-              }}>
-                  Supported file types: .pdf
-              </p>
-              <span className={styles.blinkingCursor}><strong>{currentText}</strong></span>
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center', // Center vertically in the available space
-                gap: '20px',
-                marginTop: 'auto', // Push to bottom
-                width: '100%', // Take full width to center content
-                height: '10vh', // Full height of the viewport
-                boxSizing: 'border-box', // Include padding and border in the element's total width and height
-              }}>
-                  <button style={{
-                    borderRadius: '8px',
-                    backgroundColor: '#fa7970',
-                    color: 'black',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: '5px 15px',
-                  }} onClick={handleLogin}>
-                    <strong>Login</strong>
-                  </button>
-                  <div  className='tierInfo' style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    width: '100%', 
-                    padding: '0 10px',
-                    boxSizing: 'border-box',
-                  }}>
-                    <p>
-                      <em>Free tier: 10 Resources and unlimited messages. GPT-4 Plans start at $4.99.  </em>
-                      <span style={{ color: ' #00A67E' }}> Powered by Open AI.</span>
-                    </p>
-                  </div>
-              </div>
-            </div>
-
-            {/*footer */}  
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between', // Keep items evenly distributed
-              width: '100%',
-              padding: '0 10px',
-              boxSizing: 'border-box',
-            }}>
-
-              <div style={{ 
-                width: '100%', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                marginLeft: '50px', // Adjust this value for smaller screens if needed,
-              }}>
-
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '100%',
-                  height: '7.5vh'
-                }}>
-                  
-                </div>                    
-              </div>
-              <div style={{height:'3.25vh',flex:'0 0 auto', maxWidth:'100px',fontSize:'9px'}}>
-                Hosted on
-                <a href="https://vercel.com/home" target="_blank" rel="noopener noreferrer">
-                  <img src="https://img.shields.io/badge/vercel-%23000000.svg?logo=vercel&logoColor=white&style=for-the-badge" alt="Vercel" style={{height:'20px'}}/>
-                </a>
-              </div>
-            </div>
-            <style jsx>{`
-            .tierInfo{
-              font-size:0.85em
-            }
-            .name{
-              font-size: 1.2em;
-              color:#fa7970;
-              flex: 0 1 auto;
-              margin-left: -25px
-            }
-            /* Responsive styles */
-            @media (max-width: 800px) {
-              .name {
-                font-size: 1.2em; /* Smaller font size for smaller screens */
-              }
-              .tierInfo{
-                font-size:0.7em
-              }
-            }
-             `}</style>
-            
-  {/*closing divs*/}  
-      </div>
+    <h1 className={styles.h1Bold} >JotDownAI</h1>
+    <Tooltip placement="bottom" title={about}>
+      <InfoCircleOutlined style={{ fontSize: '24px', paddingBottom:'5vh'}} onClick={()=>setIsAboutGuestOpen(true)}/>
+    </Tooltip>
+  </header>
+  <main className={styles.mainclassBox}>
+    <h2 className = {styles.boxWords}>Resource-Tailored AI ChatBot.</h2>
+    <p class="mb-4"><Tooltip placement="bottom" title={custom}>Upload Resources -&gt; Get Your Custom AI Assistant.</Tooltip></p>
+    <p class="mb-4"><Tooltip placement="bottom" title={vanilla}>Includes Vanilla AI Chatbot</Tooltip></p>
+    <p class="mb-6">Supported file types: .pdf</p>
+    <div className={styles.buttonBox}>
+      <button className={styles.loginButton} onClick={handleLogin}>
+        Login to get started
+      </button>
     </div>
-  </div>
+  </main>
+  <footer className={styles.foot}>
+  <div className={styles.shimmercontainer}>
+  <span className={styles.shimmertext}>Free tier: 1 Resources and unlimited messages.</span> Pro Plans start at $9.99
+</div>
 
-        {isAboutGuestOpen && (
-              <AboutModal
-                  hideAboutModal={() => setIsAboutGuestOpen(false)}
-              /> 
-          )}
-  </>)
+    <div className={styles.footBox}>
+      <p>Hosted on </p>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="h-6 w-6 ml-1"
+      >
+        <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
+      </svg>
+      <h3 className={styles.poweredText}>  Powered by Open AI</h3> 
+    </div>
+  </footer>
+</div>
+{isAboutGuestOpen && (
+  <AboutModal
+      hideAboutModal={() => setIsAboutGuestOpen(false)}
+  /> 
+)}
+</>)
 }

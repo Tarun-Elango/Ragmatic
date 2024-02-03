@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
-import {  UserOutlined, InfoCircleOutlined, PlusCircleOutlined, DoubleLeftOutlined,DoubleRightOutlined, UploadOutlined, DeleteOutlined,WarningOutlined,SearchOutlined, CalculatorOutlined, PictureOutlined  } from '@ant-design/icons';
+import {  UserOutlined, InfoCircleOutlined, PlusCircleOutlined, DoubleLeftOutlined,DoubleRightOutlined, UploadOutlined, DeleteOutlined,WarningOutlined,SearchOutlined, CalculatorOutlined, PictureOutlined ,CloudUploadOutlined } from '@ant-design/icons';
 import { Button, Input,Tooltip, Menu,List,Modal,notification, TextArea, Col, Row , Switch  } from 'antd';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import Head from 'next/head'
@@ -13,6 +13,7 @@ import OpaqueLoading from '../components/OpaqueLoading'
 import ChatLoading from '../components/ChatLoading'
 import Guest from './guest'
 import io from 'socket.io-client';
+import styles from '../styles/home.module.css'
 
 export default function Home({accessToken}) {
 
@@ -59,7 +60,7 @@ export default function Home({accessToken}) {
   const newUpload = <span>Upload new Resource</span>
   const openChat = <span>Open ChatBar</span>
   const closeChat = <span>Close ChatBar</span>
-  const Vanilla = <span>Vanilla Mode: Ignore the resource and use plain LLM.</span>
+  const Vanilla = <span>Vanilla Mode: Ignore the resource and use plain AI.</span>
   const search = <span>Search Mode: Use web search for additional power.</span>
   const calculator = <span>Calculator Mode: Use a calculator to reliably perform math.</span>
   const dalle = <span>Produce an image (based on provided resource). Max 2/resource/day</span>
@@ -383,7 +384,7 @@ export default function Home({accessToken}) {
             });
           dataPmt = await apiFetch.json(); // has the pmt
         } else {
-          dataPmt = `- User Query: ${inputText}.--previousRelevantMessage:${supabasePastRetreive.message}.- Instruction to LLM: - Respond to user query. - Think step by step before answering. - Keep the response concise, within 200 words. - Refer to the previous relevant message only for context, and if no such message is found, ignore this section.`
+          dataPmt = `- User Query: ${inputText}.-previousRelevantMessage:${supabasePastRetreive.message}.- Instruction to LLM: - Respond to user query. - Think step by step before answering. - Keep the response concise, within 200 words. - Refer to the previous relevant message only for context, and if no such message is found, ignore previous relevant message.`
         }
 
         // get the response from open ai using sockets
@@ -552,7 +553,6 @@ export default function Home({accessToken}) {
 
   // function to handle chat list and its selection
   const handleChatHistoryClick = async (chatId) => {
-    console.log(chatId)
     // when we select a new chat
       clearMessageList()
       
@@ -1000,10 +1000,13 @@ export default function Home({accessToken}) {
                       }
                   </ul>
               </div>
+              
+              <h2  style={{alignSelf: 'center', marginBottom:'10px'}}><a className={styles.hoverPro}>  Try Pro </a></h2>
+            
           {isLeftColumnVisible && (
-            <Tooltip placement="top" title={closeChat}>
+            
           <DoubleLeftOutlined style={{alignSelf: 'center', marginBottom: '15px'}} onClick={handleChatBackButtonClick}/> 
-          </Tooltip>)}
+         )}
         </div>)}
 
         {/* Main Content */}
@@ -1014,7 +1017,7 @@ export default function Home({accessToken}) {
                           <InfoCircleOutlined style={{marginLeft:'15px'}} onClick={()=>setIsAboutOpen(true)}/>
                       </Tooltip>
                   </h3>
-                  <Tooltip placement="bottom" title={newUpload}><UploadOutlined onClick={()=>setIsUploadOpen(true)} style={{marginLeft:'10px', fontSize:'25px'}}/></Tooltip>
+                  <Tooltip placement="bottom" title={newUpload}><CloudUploadOutlined onClick={()=>setIsUploadOpen(true)} style={{marginLeft:'10px', fontSize:'25px'}}/></Tooltip>
                   <Button style={{ backgroundColor: '#fa7970', marginLeft:'15px',marginRight:'15px', border:'black' }} onClick={showModal}>Manage Resource</Button>
                   <Menu onClick={onClick}  mode="horizontal" items={accounts} style={{backgroundColor:'transparent', color:'white', marginRight:'15px'}} selectedKeys={[null]}/>
               </div>

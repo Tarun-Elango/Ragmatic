@@ -1,20 +1,134 @@
-/* TextWithCursor.module.css */
-.blinkingCursor {
-    display: inline-block;
-    position: relative;
+.container {
+  height: 100vh;
+  background-color: #21262d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  padding:  5vh 2.5vw;  /* Use viewport width for padding */
+  overflow-y: auto; /* Changed from scroll for better adaptability */
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  margin-right: 1rem; 
+}
+
+.h1Bold {
+  margin-left: 8vh;
+  margin-right: 8vh;
+  font-size: 2.25rem; /* Consider using em or vw for scalable fonts */
+  font-weight: 700;
+  padding-bottom: 5vh;
+}
+
+.mainclassBox {
+  background-color: #36373A;
+  padding: 5rem; /* Consider using em or vw */
+  border-radius: 0.5rem;
+  max-width: 90vw; /* Ensure max width for better control on zoom */
+  box-sizing: border-box; /* Ensure padding is included in the width calculation */
+}
+
+.boxWords {
+  font-size: 1.875rem; /* Consider using em or vw */
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+.buttonBox {
+  display: flex;
+  justify-content: center; /* This will center the child horizontally */
+}
+
+
+.loginButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  border-radius: 0.375rem;
+  font-size: 0.875rem; /* Consider using em for scalability */
+  font-weight: 500;
+  background-color: #f56565;
+  color: white;
+  height: 2.5rem;
+  padding: 0.5rem 1rem;
+  transition: color 0.2s;
+}
+
+/* Hover, focus, and disabled states for better accessibility */
+.loginButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #f56565;
+}
+
+.loginButton:hover {
+  background-color: #e53e3e;
+}
+
+.loginButton:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.foot {
+  margin-top: 2rem;
+  font-size: 0.875rem; /* Consider using em for scalability */
+}
+
+.footBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+/* Media Query for larger zoom levels or smaller screens */
+@media (max-width: 600px) {
+  .container {
+    padding: 10vh 3vw; /* Adjust padding for smaller screens */
   }
-  
-  .blinkingCursor::after {
-    content: ' |';
-    position: absolute;
-    right: -5px; /* Adjust to align with text end */
-    color: white; /* Set cursor color to white */
-    animation: blink 1s step-start infinite;
+
+  .h1Bold, .boxWords {
+    font-size: 1.5rem; /* Adjust font size for readability */
   }
-  
-  @keyframes blink {
-    50% {
-      opacity: 0;
-    }
+
+  .loginButton {
+    padding: 0.4rem 0.8rem; /* Adjust button padding */
   }
-  
+
+  .foot {
+    font-size: 0.8rem; /* Adjust footer font size */
+  }
+}
+
+.shimmercontainer {
+  display: inline-block;
+}
+
+.shimmertext {
+  position: relative;
+  font-size: 15px;
+  color: #000;
+  background: linear-gradient(to right, #fa7970 20%, #fff 40%, #fff 60%, #fa7970 80%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-size: 200% 100%;
+  animation: shimmer-animation 2s infinite linear;
+}
+
+@keyframes shimmer-animation {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+.poweredText {
+  margin-left: 20px;
+  color: #00A67E; /* Replace #yourColor with the hex code or color name you desire */
+}

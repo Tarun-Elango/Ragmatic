@@ -1,0 +1,5 @@
+.hoverPro:hover {
+    color: #007BFF; /* Blue color for hover state */
+    text-decoration: underline; /* Underline on hover */
+    cursor: pointer; /* Pointer cursor on hover */
+}

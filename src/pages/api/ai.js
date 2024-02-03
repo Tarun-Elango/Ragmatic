@@ -12,32 +12,6 @@ const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
   environment: process.env.PINECONE_ENVIRONMENT,
 });
-
-
-function dotProduct(vec1, vec2) {
-    let product = 0;
-    for (let i = 0; i < vec1.length; i++) {
-        product += vec1[i] * vec2[i];
-    }
-    return product;
-}
-
-function magnitude(vec) {
-    let sum = 0;
-    for (let i = 0; i < vec.length; i++) {
-        sum += vec[i] ** 2;
-    }
-    return Math.sqrt(sum);
-}
-
-function cosineSimilarity(vec1, vec2) {
-    return dotProduct(vec1, vec2) / (magnitude(vec1) * magnitude(vec2));
-}
-
-function cosineDistance(vec1, vec2) {
-    return 1 - cosineSimilarity(vec1, vec2);
-}
-
 //\n4. Use your knowledge for related questions.
 // For completely Unrelated queries: respond with 'Sorry, please ask a relevant question'
 //.\n5.Refer to past conversations for context.
@@ -174,7 +148,7 @@ export default async function handler(req, res) {
         console.log(`Execution time rerank: ${secondsre} seconds`);
 
         //create a final query for llm
-        const pmt = `- User Query: ${userQuery}.- Context from Uploaded Document:${rankedContent}.-previousRelevantMessage:${pastMessage}.- Instruction to LLM: Use the information from the uploaded document, supplemented with your own knowledge, to accurately and comprehensively answer the user's query. If the document lacks sufficient or relevant details, rely on your knowledge base to provide an appropriate response.- Additional Requirements: Keep the response concise, within 200 words. Refer to the previous relevant message only for context, and if no such message is found, ignore this section.`
+        const pmt = `- User Query: ${userQuery}.- Context from Uploaded Document:${rankedContent}.-previousRelevantMessage:${pastMessage}.- Instruction to LLM: - Answer users Query, by thinking through the problem step by step. - Use the information from the uploaded document, supplemented with your own knowledge, to accurately and comprehensively answer the user's query. - If the document lacks sufficient or relevant details, rely on your knowledge base to provide an appropriate response, and if you cant come up with an answer say i dont know.- Additional Requirements: Keep the response concise, within 200 words. Refer to the previous relevant message only for context, and if no such message is found, ignore previous relevant message.`
         console.log(pmt.length)
 
         res.status(200).json(pmt);
