@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "mkdir -p /var/task/node_modules/@xenova/transformers/.cache"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^3.3.0",

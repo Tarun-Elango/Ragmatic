@@ -111,6 +111,7 @@ apiRoute.post(async (req, res) => {
       }
   
       mongoResponse = await response.json();
+      console.log(mongoResponse)
       // Process the response data as needed
       } catch (error) {
         if (error.response) {
@@ -135,6 +136,7 @@ apiRoute.post(async (req, res) => {
       const docOutput = await splitter.splitDocuments([
         new Document({ pageContent: pdfText }),
       ]);
+      console.log(docOutput.length, 'length of doc')
 
       // get embeddings list for all the pages of the split pdf
       const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small') 
@@ -171,7 +173,8 @@ apiRoute.post(async (req, res) => {
       // add the entire embedding list to pinecone
       try {
         // insert to custom namesapce
-          await index.upsert(vectors);
+          const pine  = await index.upsert(vectors);
+          console.log(pine)
           console.log('Embeddings added to the namespace successfully');
       } catch (error) {
           console.error('Error during upsert:', error);
