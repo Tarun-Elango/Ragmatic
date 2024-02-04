@@ -1,7 +1,8 @@
 const { createClient } = require('@supabase/supabase-js');
 import { pipeline } from '@xenova/transformers'
+import { env } from '@xenova/transformers'
 import { middleware } from "../../middleware/middleware";
-
+import { env } from '@xenova/transformers'
 function dotProduct(vec1, vec2) {
     let product = 0;
     for (let i = 0; i < vec1.length; i++) {

@@ -6,8 +6,10 @@ const PDFParser = require('pdf-parse');
 import axios from 'axios';
 import { Pinecone } from '@pinecone-database/pinecone';
 import { pipeline } from '@xenova/transformers'
+import { env } from '@xenova/transformers'
 import Pages from '../../models/Pages'
 import { middleware } from "../../middleware/middleware";
+env.cacheDir = '../../cache';
 
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
