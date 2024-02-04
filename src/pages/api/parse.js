@@ -173,8 +173,7 @@ apiRoute.post(async (req, res) => {
       // add the entire embedding list to pinecone
       try {
         // insert to custom namesapce
-          const pine  = await index.upsert(vectors);
-          console.log(pine)
+          await index.upsert(vectors);
           console.log('Embeddings added to the namespace successfully');
       } catch (error) {
           console.error('Error during upsert:', error);
