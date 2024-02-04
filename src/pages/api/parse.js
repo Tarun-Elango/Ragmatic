@@ -93,7 +93,7 @@ apiRoute.post(async (req, res) => {
         const userRefID = userId
         const docuName = customNamespace
         console.log('here')
-        const response = await fetch('/api/document', { // Use a full URL if necessary
+        const response = await fetch(`${process.env.BASEURL}/api/document`, { // Use a full URL if necessary
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
