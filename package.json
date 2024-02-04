@@ -23,7 +23,6 @@
     "next-connect": "^1.0.0",
     "openai": "^4.24.1",
     "pdf-parse": "^1.1.1",
-    "pdfjs-dist": "2.7.570",
     "react": "^18",
     "react-dom": "^18",
     "socket.io-client": "^4.7.4",

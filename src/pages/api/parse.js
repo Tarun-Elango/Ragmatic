@@ -1,6 +1,5 @@
 import multer from 'multer';
 import { createRouter } from 'next-connect';
-import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Document } from "@langchain/core/documents";
 const PDFParser = require('pdf-parse');
@@ -127,12 +126,6 @@ apiRoute.post(async (req, res) => {
         }
         return res.status(400).json({ error: 'MongoDb error', message:'MongoDb error' });
       }
-
-      const loader = new PDFLoader(uploadedFile, {
-        // you may need to add `.then(m => m.default)` to the end of the import
-        pdfjs: () => import("pdfjs-dist/legacy/build/pdf.js").then(m => m.default),
-      });
-
 
       const splitter = new RecursiveCharacterTextSplitter({
         chunkSize: 400,//500
