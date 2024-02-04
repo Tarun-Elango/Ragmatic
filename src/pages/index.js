@@ -681,7 +681,7 @@ export default function Home({accessToken}) {
       };
     
       try {
-        const response = await fetch('http://localhost:3000/api/document', {
+        const response = await fetch('/api/document', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}` },
