@@ -661,13 +661,6 @@ export default function Home({accessToken}) {
   ];
     
   useEffect(() => {
-      // Step 1: Load User Documents, on page refresh
-      if (user?.sub) {
-        fetchUserDocuments();
-      }
-  }, [user]);
-    
-  useEffect(() => {
       // Step 3: Set Filtered Data, for the resource list
       setFilteredData(typeArray);
   }, [typeArray]);
@@ -735,7 +728,14 @@ export default function Home({accessToken}) {
       }
       setFetchingDocs(false)
   };
-        
+         
+  useEffect(() => {
+    // Step 1: Load User Documents, on page refresh
+    if (user?.sub) {
+      fetchUserDocuments();
+    }
+  }, [user]);
+
   function customEncodeURI(str) { // used in fetch chat messages
   // A basic example that encodes everything except the pipe character '|'
       return str.replace(/[^A-Za-z0-9\-_.!~*'()|]/g, function(c) {

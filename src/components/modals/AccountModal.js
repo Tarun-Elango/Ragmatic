@@ -8,11 +8,11 @@ import { Modal, Input, Space, Button, notification,Spin  } from 'antd'
 export default function AccountModal({hideAccountModal}) {
   const router = useRouter();
   const { user, error, isLoading } = useUser();
-
+  const [isModalVisible, setIsModalVisible] = useState(true);
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>{error.message}</div>;
 
-  const [isModalVisible, setIsModalVisible] = useState(true);
+  
 
   const handleOk = () => {
     setIsModalVisible(false);
