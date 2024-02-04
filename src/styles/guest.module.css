@@ -105,6 +105,7 @@
 
 .shimmercontainer {
   display: inline-block;
+  align-content: center;
 }
 
 .shimmertext {
@@ -130,5 +131,26 @@
 
 .poweredText {
   margin-left: 20px;
+  margin-right: 20px;
   color: #00A67E; /* Replace #yourColor with the hex code or color name you desire */
+}
+
+/* TextWithCursor.module.css */
+.blinkingCursor {
+  display: inline-block;
+  position: relative;
+}
+
+.blinkingCursor::after {
+  content: ' |';
+  position: absolute;
+  right: -5px; /* Adjust to align with text end */
+  color: white; /* Set cursor color to white */
+  animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
 }

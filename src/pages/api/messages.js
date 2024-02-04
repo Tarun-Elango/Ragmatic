@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   if (!result.success) {
     res.status(400).json({ success: false, message: result.message });
   } else {
-    // get chats messages
+    // get chats messages, all chat messages from a chat id
     if (req.method === 'GET') {
         
         try {
@@ -40,7 +40,7 @@ export default async function handler(req, res) {
         }
       } 
 
-      // create a new message
+      // create a new message, has the chatid, user, message type ai or user, text
       else if (req.method === 'POST') {
         try {
           const { chatID, userID, messageType, content } = req.body;

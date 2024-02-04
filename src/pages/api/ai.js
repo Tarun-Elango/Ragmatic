@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import Pages from '../../models/Pages'
 import { pipeline } from '@xenova/transformers'
 import { Pinecone } from '@pinecone-database/pinecone';
+import axios from 'axios';
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY, // This is the default and can be omitted
@@ -40,6 +41,19 @@ export default async function handler(req, res) {
       const docId = req.body.docId
       const docName = req.body.docName 
       const pastMessage = req.body.pMessage  
+      
+        //////////////////////////get token // get client accesstoken from auth0
+        const postData = `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"${process.env.AUTH0_AUD}","grant_type":"client_credentials"}`
+        const headers = {
+            'Content-Type': 'application/json',
+        }
+
+        const response = await axios.post(process.env.AUTH0_TOKEN, postData, { headers });
+
+        // Extract the data from the response
+        const data = response.data;
+        const accessToken = data.access_token
+        ////////////////////////////
   try {
         const startTime = performance.now();
 
@@ -128,6 +142,7 @@ export default async function handler(req, res) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
             },
             body: JSON.stringify(rerankData),
             });
@@ -140,6 +155,7 @@ export default async function handler(req, res) {
             // console.log(rerankPythn)
             //res.status(200).json(rerankPythn);
         } catch (error) {
+            res.status(500).json({ error })
             console.log(error)
             //res.status(500).json({ message: error.message });
         }

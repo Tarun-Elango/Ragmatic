@@ -1,13 +1,14 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import {  UserOutlined, InfoCircleOutlined, PlusCircleOutlined, DoubleLeftOutlined,DoubleRightOutlined, UploadOutlined, DeleteOutlined,WarningOutlined,SearchOutlined, CalculatorOutlined, PictureOutlined ,CloudUploadOutlined } from '@ant-design/icons';
-import { Button, Input,Tooltip, Menu,List,Modal,notification, TextArea, Col, Row , Switch  } from 'antd';
+import {  UserOutlined, InfoCircleOutlined, PlusCircleOutlined, DoubleLeftOutlined,DoubleRightOutlined, RocketOutlined, DeleteOutlined,WarningOutlined,SearchOutlined, CalculatorOutlined, PictureOutlined ,CloudUploadOutlined } from '@ant-design/icons';
+import { Button, Input,Tooltip, Menu,List,Modal,notification, Switch  } from 'antd';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import Head from 'next/head'
 import LoadingComponent from '../components/LoadingComponent'
 import UploadModal from '../components/modals/UploadModal';
 import AboutModal from '../components/modals/AboutModal'
 import AccountModal from '../components/modals/AccountModal';
+import UpgradeModal from '../components/modals/UpgradeModal';
 import axios from 'axios';
 import OpaqueLoading from '../components/OpaqueLoading'
 import ChatLoading from '../components/ChatLoading'
@@ -63,7 +64,8 @@ export default function Home({accessToken}) {
   const Vanilla = <span>Vanilla Mode: Ignore the resource and use plain AI.</span>
   const search = <span>Search Mode: Use web search for additional power.</span>
   const calculator = <span>Calculator Mode: Use a calculator to reliably perform math.</span>
-  const dalle = <span>Produce an image (based on provided resource). Max 2/resource/day</span>
+  const dalle = <span>Produce an image (based on provided resource). Max 2images/resource/day</span>
+  const rocket = <span>Rocket mode: Harness all resources to answer your query 10 per day</span>
   const [isSearchActive, setSearchActive] = useState(false);
   const [isCalculatorActive, setCalculatorActive] = useState(false);
   const [isVanillaMode, setIsVanillaMode] = useState(false);
@@ -378,7 +380,7 @@ export default function Home({accessToken}) {
               method: 'POST',
               headers: {
                   'Content-Type':'application/json',
-                'Authorization': `Bearer ${token}`
+                  'Authorization': `Bearer ${token}`
               },
               body: JSON.stringify(openAiData)
             });
@@ -405,7 +407,6 @@ export default function Home({accessToken}) {
         setMessageList((prevMessages)=>[...prevMessages, initialEmpty]) 
         //---------------------------------------------------------------- socket start ------------------------------------------------------------
         if (!socket) { // Check if the socket is not already connected
-
           // create a new connection, with token
           const newSocket = io('http://localhost:5000',{
             query:{acctoken:token}
@@ -430,7 +431,8 @@ export default function Home({accessToken}) {
             console.log('Disconnected by the server');
             setSocket(null);
             // shut off the socket
-            newSocket.emit('trigger_disconnect') //way to tell the server to disconnect
+            newSocket.close()
+            //newSocket.emit('trigger_disconnect') //way to tell the server to disconnect
             // router.push('/api/auth/logout')
           })
 
@@ -470,8 +472,9 @@ export default function Home({accessToken}) {
               
               // add the current user+ai to supabase
               postAiSupabase(responseMessage, id)
-              newSocket.off('disconnect'); // Remove the disconnect event listener after it has been executed once
-      
+              //newSocket.off('disconnect'); // Remove the disconnect event listener after it has been executed once
+              newSocket.close()
+
               return prevMessages; // Return the previous messages without modification
             });
 
@@ -491,6 +494,7 @@ export default function Home({accessToken}) {
         //---------------------------------------------------------------- socket end ------------------------------------------------------------
         // const formattedResponse = formatOpenAiResponse(JSON.stringify(data).slice(1, -1));
       } catch (error) {
+        setIsAiLoading(false)
           openNotification(' Failed to receive a response.');
           console.error('Error fetching response:', error);
       }
@@ -618,6 +622,9 @@ export default function Home({accessToken}) {
       if (e.key == 'setting:1'){
           handleAccountButtonClick()
       }
+      if (e.key == 'setting:2'){
+        setIsUpgradeOpen(true)
+    }
   };
 
   const onNewChat = () => {
@@ -645,7 +652,10 @@ export default function Home({accessToken}) {
                   label: 'Logout',
                   key: 'setting:3',
                 },
-
+                {
+                  label: 'Contact us',
+                  key: 'setting:4',
+                },
           ],
         },
   ];
@@ -790,7 +800,7 @@ export default function Home({accessToken}) {
   }, [chatIdToDelete]);
   
 
-    
+  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false)
 
 
   const fetchChatMessages = async (userId, pdfId) => {
@@ -1001,7 +1011,7 @@ export default function Home({accessToken}) {
                   </ul>
               </div>
               
-              <h2  style={{alignSelf: 'center', marginBottom:'10px'}}><a className={styles.hoverPro}>  Try Pro </a></h2>
+              <h2  style={{alignSelf: 'center', marginBottom:'10px'}}><a className={styles.hoverPro} onClick={()=>setIsUpgradeOpen(true)}>  Try Pro </a></h2>
             
           {isLeftColumnVisible && (
             
@@ -1069,8 +1079,20 @@ export default function Home({accessToken}) {
                     />
                   </Tooltip>
                   <Tooltip placement="bottom" title={dalle}>
-                  <PictureOutlined />
+                  <PictureOutlined style={{
+                        marginRight: '35px',
+                        color: isCalculatorActive ? 'red' : 'inherit', // Change color when active
+                        cursor: 'pointer'
+                      }} />
                   </Tooltip>
+                  <Tooltip placement="bottom" title={rocket}>
+                  <RocketOutlined style={{
+                        marginRight: '35px',
+                        color: isCalculatorActive ? 'red' : 'inherit', // Change color when active
+                        cursor: 'pointer'
+                      }} />
+                  </Tooltip>
+
                   </div>
 
                   {/* Messages Container */}
@@ -1233,6 +1255,7 @@ export default function Home({accessToken}) {
                                     {typeArray.length > 0 && typeArray[currentDocuIndex] ? ' '+typeArray[currentDocuIndex]+' ' : ' Upload any document '} 
                                   </span> 
                                 </h2>
+                                
                                 {isAiLoading ? <ChatLoading/> : <></>}
                             </div>
                         </div>
@@ -1248,6 +1271,11 @@ export default function Home({accessToken}) {
                       acToken = {token}
                       />
                   )} 
+          {isUpgradeOpen && (
+              <UpgradeModal
+                  hideUpgradeModal={() => setIsUpgradeOpen(false)}
+              /> 
+          )}
           {isAboutOpen && (
               <AboutModal
                   hideAboutModal={() => setIsAboutOpen(false)}

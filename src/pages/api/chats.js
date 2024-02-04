@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   if (!result.success) {
     res.status(400).json({ success: false, message: result.message });
   } else {
-    // get chats
+    // get chats by user and document choosen
     if (req.method === 'GET') {
         try {
           const { userID, document } = req.query;
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
           res.status(500).json({ success: false, message: 'Server Error', error: error.message });
         }
       } 
-///////////////////////////////////////////////////////////// create a new chat
+///////////////////////////////////////////////////////////// create a new chat for user, selected document and a given name
       else if (req.method === 'POST') {
         try {
           const { userID, document, chatName } = req.body;
@@ -53,7 +53,10 @@ export default async function handler(req, res) {
 else if (req.method === 'DELETE') {
         try {
           const { chatId } = req.query;
-          
+
+          if (!chatId) {
+            return res.status(400).send('chatId is required');
+        }
           // Delete the chat
           const deletedChat = await Chat.findByIdAndDelete(chatId);
           if (!deletedChat) {
@@ -64,10 +67,6 @@ else if (req.method === 'DELETE') {
           await Mes.deleteMany({ chatID: chatId });
 
           // delete rows from supabase where chatid matches
-          if (!chatId) {
-              return res.status(400).send('chatId is required');
-          }
-
           const { error } = await supabase
               .from('vector_embeddings')
               .delete()

@@ -89,6 +89,8 @@ apiRoute.post(async (req, res) => {
 
 
       try {
+
+        // create a new doc in mongo, just the doc details
         const userRefID = userId
         const docuName = customNamespace
         console.log('here')
@@ -141,7 +143,7 @@ apiRoute.post(async (req, res) => {
         new Document({ pageContent: pdfText }),
       ]);
 
-      // get embeddings list
+      // get embeddings list for all the pages of the split pdf
       const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small') 
       let embeddingsList = [];
       for (const [index, body] of docOutput.entries()) {
@@ -173,7 +175,7 @@ apiRoute.post(async (req, res) => {
           return { id: id, values: embedding };
       });
       
-      // add to pinecone
+      // add the entire embedding list to pinecone
       try {
         // insert to custom namesapce
           await index.upsert(vectors);

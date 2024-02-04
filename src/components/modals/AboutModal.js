@@ -14,6 +14,11 @@ function AboutModal({ hideAboutModal }) {
     hideAboutModal();
   };
 
+
+  // about the app
+  // about the team
+  // version release notes
+
   return (
     <Modal 
     open={isModalVisible} 
@@ -26,6 +31,7 @@ function AboutModal({ hideAboutModal }) {
         </Button>
     </div> 
     ]}>
+      <h3 > <em> Beta version 0.1</em></h3> 
     <div className="about-modal" style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '10px',fontFamily: 'Roboto Mono, monospace' }}>
         <p style={{ color: '#333', textAlign: 'center' }}>Quickly upload and get AI assistance for your files.</p>
         

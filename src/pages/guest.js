@@ -1,6 +1,6 @@
 import {  InfoCircleOutlined } from '@ant-design/icons';
 import { Tooltip, } from 'antd';
-import React, {  useState } from 'react';
+import React, {  useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head'
 import styles from '../styles/guest.module.css'
@@ -13,7 +13,22 @@ export default function Guest () {
   const handleLogin = () => {
     router.push('/api/auth/login')
   };
-  
+
+  const text = ".pdf";
+  const [currentText, setCurrentText] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const delay = 50
+  useEffect(() => {
+    if (currentIndex < text.length) {
+      const timeout = setTimeout(() => {
+        setCurrentText(prevText => prevText + text[currentIndex]);
+        setCurrentIndex(prevIndex => prevIndex + 1);
+      }, delay);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [currentIndex, delay, text]);
+
   const about ="More info"
   const vanilla =<span>Have a regular conversation with an AI.</span>
   const custom = <span>AI will answer queries, based on the uploaded resource.</span>
@@ -57,9 +72,18 @@ return(<>
   </header>
   <main className={styles.mainclassBox}>
     <h2 className = {styles.boxWords}>Resource-Tailored AI ChatBot.</h2>
-    <p class="mb-4"><Tooltip placement="bottom" title={custom}>Upload Resources -&gt; Get Your Custom AI Assistant.</Tooltip></p>
-    <p class="mb-4"><Tooltip placement="bottom" title={vanilla}>Includes Vanilla AI Chatbot</Tooltip></p>
-    <p class="mb-6">Supported file types: .pdf</p>
+    <p className="mb-4">
+      <Tooltip placement="bottom" title={custom}>
+        Upload Resources -&gt; Get Your Custom AI Assistant.
+      </Tooltip>
+    </p>
+    <p className="mb-4">
+      <Tooltip placement="bottom" title={vanilla}>
+        Includes Vanilla AI Chatbot
+      </Tooltip>
+    </p>
+    <p className="mb-6">Supported file types: <span className={styles.blinkingCursor}><>{currentText}</></span></p>
+
     <div className={styles.buttonBox}>
       <button className={styles.loginButton} onClick={handleLogin}>
         Login to get started
@@ -68,7 +92,8 @@ return(<>
   </main>
   <footer className={styles.foot}>
   <div className={styles.shimmercontainer}>
-  <span className={styles.shimmertext}>Free tier: 1 Resources and unlimited messages.</span> Pro Plans start at $9.99
+  <span className={styles.shimmertext}>Free to use</span> While in Beta version 
+  
 </div>
 
     <div className={styles.footBox}>
@@ -80,14 +105,14 @@ return(<>
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="h-6 w-6 ml-1"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       >
         <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
       </svg>
       <h3 className={styles.poweredText}>  Powered by Open AI</h3> 
+      <h3 > <em> Beta version 0.1</em></h3> 
     </div>
   </footer>
 </div>
