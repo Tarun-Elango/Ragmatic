@@ -70,18 +70,18 @@ export default async function handler(req, res) {
     if (!result.success) {
       res.status(400).json({ success: false, message: result.message });
     } else {
-            const { chatId, userQuery, combinedMessage } = req.body;
-             // get client accesstoken from auth0
-        const postData = `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"${process.env.AUTH0_AUD}","grant_type":"client_credentials"}`
-        const headers = {
-            'Content-Type': 'application/json',
-        }
-
-        const response = await axios.post(process.env.AUTH0_TOKEN, postData, { headers });
-
-        // Extract the data from the response
-        const data = response.data;
-        const accessToken = data.access_token // this has the accesstoken
+        const { chatId, userQuery, combinedMessage } = req.body;
+        
+        //////////////////////////get client accesstoken from auth0
+            const postData = `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"${process.env.AUTH0_AUD}","grant_type":"client_credentials"}`
+            const headers = {
+                'Content-Type': 'application/json',
+            }
+            const response = await axios.post(process.env.AUTH0_TOKEN, postData, { headers });
+            // Extract the data from the response
+            const data = response.data;
+            const accessToken = data.access_token // this has the accesstoken
+        //////////////////////////////
         
             // Check if the request method is POST
             if (req.method !== 'POST') {
@@ -93,6 +93,7 @@ export default async function handler(req, res) {
                 let startTime = process.hrtime();
                 // retrive most relevant vector embedding
             
+                // get the embdedding of userquery
                 let embeddingUserQuery = []
                 const dataForEmbed = {sentence: userQuery}
                 try {
@@ -114,15 +115,15 @@ export default async function handler(req, res) {
                     console.error('Error fetching embedding:', error);
                     throw error;
                 }
-            // const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small');
-            // const embeddingResultUser = await generateEmbedding(userQuery, {
-            //     pooling: 'mean',
-            //     normalize: true,
-            // });
-            // const embeddingUserQuery = Array.from(embeddingResultUser.data);
+                // const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small');
+                // const embeddingResultUser = await generateEmbedding(userQuery, {
+                //     pooling: 'mean',
+                //     normalize: true,
+                // });
+                // const embeddingUserQuery = Array.from(embeddingResultUser.data);
 
 
-                // get all previous chat messages
+                // get all chat messages by current chat id
                 const rows = await fetchRowsByChatId(chatId);
 
                 if (rows) {
@@ -131,7 +132,8 @@ export default async function handler(req, res) {
                 } else {
                     console.log('No rows retrieved or an error occurred');
                 }
-
+                
+                    // find the closest chat between the list from supabase(rows) and the embedding of the user query(embeddingUserQuery)
 
                     let closestVec = rows[0].vector_embedding;
                     // TODO: add all user queries
@@ -155,9 +157,9 @@ export default async function handler(req, res) {
                     }
                     //console.log( rows[closestVecIndex]) // get the message from the row eqivalent and sent as reponse
                     let diff = process.hrtime(startTime);
-            let seconds = diff[0] + diff[1] / 1e9; // Convert nanoseconds to seconds
-            console.log(`Execution time for supabase find closest embeddings: ${seconds} seconds`);
-            return res.status(200).json({ message: `${rows[closestVecIndex].text_string}` });
+                    let seconds = diff[0] + diff[1] / 1e9; // Convert nanoseconds to seconds
+                    console.log(`Execution time for supabase find closest embeddings: ${seconds} seconds`);
+                    return res.status(200).json({ message: `${rows[closestVecIndex].text_string}` });
             }
         
             // Handle request with both a chat ID and a message
@@ -165,8 +167,8 @@ export default async function handler(req, res) {
             // store the combiendmessage vector embedding
 
             // get the embeddings of the combined message
-            //get the users embeddings
-            let embedding = []
+            //get the combined message embeddings
+            let embedding = [] //store here
             const dataForEmbed = {sentence: combinedMessage}
             try {
                 const responseEmbed = await fetch(`${process.env.PYTHONURL}/embed`, {
@@ -194,6 +196,7 @@ export default async function handler(req, res) {
             // });
             // const embedding = Array.from(embeddingResult.data);
 
+            // add to db
             const response =  insertVectorEmbedding(chatId, combinedMessage, embedding)
             .then(data => console.log('Inserted data:', data))
             .catch(err => console.error(err));

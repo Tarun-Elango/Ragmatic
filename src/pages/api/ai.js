@@ -1,19 +1,16 @@
 import { middleware } from "../../middleware/middleware";
-import OpenAI from 'openai';
 import Pages from '../../models/Pages'
 // import { pipeline } from '@xenova/transformers'
 // import { env } from '@xenova/transformers'
+// env.cacheDir = '../../cache';
 import { Pinecone } from '@pinecone-database/pinecone';
 import axios from 'axios';
-// env.cacheDir = '../../cache';
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY, // This is the default and can be omitted
-  });
-  
+
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
   environment: process.env.PINECONE_ENVIRONMENT,
 });
+
 //\n4. Use your knowledge for related questions.
 // For completely Unrelated queries: respond with 'Sorry, please ask a relevant question'
 //.\n5.Refer to past conversations for context.
@@ -43,23 +40,24 @@ export default async function handler(req, res) {
       const docName = req.body.docName 
       const pastMessage = req.body.pMessage  
       
-        //////////////////////////get token // get client accesstoken from auth0
-        const postData = `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"${process.env.AUTH0_AUD}","grant_type":"client_credentials"}`
-        const headers = {
-            'Content-Type': 'application/json',
-        }
+        //////////////////////////get client accesstoken from auth0
+            const postData = `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"${process.env.AUTH0_AUD}","grant_type":"client_credentials"}`
+            const headers = {
+                'Content-Type': 'application/json',
+            }
 
-        const response = await axios.post(process.env.AUTH0_TOKEN, postData, { headers });
+            const response = await axios.post(process.env.AUTH0_TOKEN, postData, { headers });
 
-        // Extract the data from the response
-        const data = response.data;
-        const accessToken = data.access_token
+            // Extract the data from the response
+            const data = response.data;
+            const accessToken = data.access_token
         ////////////////////////////
+
   try {
         const startTime = performance.now();
 
         //get the users embeddings
-        let embedding = []
+        let embedding = [] // store result here
         const dataForEmbed = {sentence: userQuery}
         try {
             const responseEmbed = await fetch(`${process.env.PYTHONURL}/embed`, {
@@ -78,7 +76,7 @@ export default async function handler(req, res) {
             embedding = await responseEmbed.json();
         } catch (error) {
             console.error('Error fetching embedding:', error);
-            throw error;
+            res.status(500).json("Could not produce embdedding for the user query");
         }
 
 
@@ -87,10 +85,10 @@ export default async function handler(req, res) {
         //     pooling: 'mean',
         //     normalize: true,
         // });
-    
         // // Ensure that the output is an array
         // //const embedding = Array.from(embeddingResult.data);
     
+        // pinecone query results
         const customNamespace = docName;
         const index = pinecone.index('jotdown').namespace(customNamespace)
         const stats = await index.describeIndexStats()
@@ -126,10 +124,10 @@ export default async function handler(req, res) {
 
         const elapsedTimeInSeconds = elapsedTime / 1000;
         console.log(`Execution time getting pinecone: ${elapsedTimeInSeconds} seconds`);
-
         let startMongo = process.hrtime();
-        // get the pages with given docid and id from pinecone, store in list
-        let queryContent = []
+
+        // get the pages from mongo with given docid and pinecone emb id, 
+        let queryContent = [] //store in list
         try{for (const match of response.matches){
             //values.id has the page id
             // and use docid to searh mongo
@@ -154,8 +152,8 @@ export default async function handler(req, res) {
         console.log(`Execution time mongo: ${seconds} seconds`);
         //console.log(queryContent)
         
-        let startTimeRerank = process.hrtime();
         // reranking step
+        let startTimeRerank = process.hrtime();
         let rankedContent=""
         try {
             const rerankData = {

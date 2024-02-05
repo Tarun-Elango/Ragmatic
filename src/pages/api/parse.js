@@ -73,22 +73,22 @@ apiRoute.post(async (req, res) => {
 
     // if it does not exist
     if (!check){
-     let mongoResponse
+      //////////////////////////get client accesstoken from auth0
+          const postData = `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"${process.env.AUTH0_AUD}","grant_type":"client_credentials"}`
+          const headers = {
+              'Content-Type': 'application/json',
+          }
+
+          const response = await axios.post(process.env.AUTH0_TOKEN, postData, { headers });
+
+          // Extract the data from the response
+          const data = response.data;
+          const accessToken = data.access_token // this has the accesstoken
+      //////////////////////////////
+
+
       // add to mongodb
-
-        // get client accesstoken from auth0
-        const postData = `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"${process.env.AUTH0_AUD}","grant_type":"client_credentials"}`
-        const headers = {
-            'Content-Type': 'application/json',
-        }
-
-        const response = await axios.post(process.env.AUTH0_TOKEN, postData, { headers });
-
-        // Extract the data from the response
-        const data = response.data;
-        const accessToken = data.access_token // this has the accesstoken
-
-
+      let mongoResponse
       try {
 
         // create a new doc in mongo, just the doc details
@@ -162,6 +162,8 @@ apiRoute.post(async (req, res) => {
         //     normalize: true,
         // });
         // const embedding = Array.from(output.data);
+
+        // call embed api
         let embedding = []
         const dataForEmbed = {sentence: body.pageContent}
         try {
@@ -184,8 +186,7 @@ apiRoute.post(async (req, res) => {
             throw error;
         }
 
-
-
+        // store in this list
         embeddingsList.push({ id: `doc-${index}`, embedding }); // Use index as part of the ID
       }
       
