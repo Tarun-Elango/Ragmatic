@@ -408,7 +408,7 @@ export default function Home({accessToken}) {
         //---------------------------------------------------------------- socket start ------------------------------------------------------------
         if (!socket) { // Check if the socket is not already connected
           // create a new connection, with token
-          const newSocket = io('http://localhost:5000',{
+          const newSocket = io(process.env.SOCKETURL,{
             query:{acctoken:token}
           });
             

@@ -59,14 +59,37 @@ export default async function handler(req, res) {
         const startTime = performance.now();
 
         //get the users embeddings
-        const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small');
-        const embeddingResult = await generateEmbedding(userQuery, {
-            pooling: 'mean',
-            normalize: true,
-        });
+        let embedding = []
+        const dataForEmbed = {sentence: userQuery}
+        try {
+            const responseEmbed = await fetch(`${process.env.PYTHONURL}/embed`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify(dataForEmbed),
+            });
     
-        // Ensure that the output is an array
-        const embedding = Array.from(embeddingResult.data);
+            if (!responseEmbed.ok) {
+                throw new Error(`Error: ${responseEmbed.statusText}`);
+            }
+    
+            embedding = await responseEmbed.json();
+        } catch (error) {
+            console.error('Error fetching embedding:', error);
+            throw error;
+        }
+
+
+        // const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small');
+        // const embeddingResult = await generateEmbedding(userQuery, {
+        //     pooling: 'mean',
+        //     normalize: true,
+        // });
+    
+        // // Ensure that the output is an array
+        // //const embedding = Array.from(embeddingResult.data);
     
         const customNamespace = docName;
         const index = pinecone.index('jotdown').namespace(customNamespace)
@@ -166,7 +189,7 @@ export default async function handler(req, res) {
 
         //create a final query for llm
         const pmt = `- User Query: ${userQuery}.- Context from Uploaded Document:${rankedContent}.-previousRelevantMessage:${pastMessage}.- Instruction to LLM: - Answer users Query, by thinking through the problem step by step. - Use the information from the uploaded document, supplemented with your own knowledge, to accurately and comprehensively answer the user's query. - If the document lacks sufficient or relevant details, rely on your knowledge base to provide an appropriate response, and if you cant come up with an answer say i dont know.- Additional Requirements: Keep the response concise, within 200 words. Refer to the previous relevant message only for context, and if no such message is found, ignore previous relevant message.`
-        console.log(pmt.length)
+        console.log(pmt)
 
         res.status(200).json(pmt);
 

@@ -141,7 +141,7 @@ apiRoute.post(async (req, res) => {
       console.log(docOutput.length, 'length of doc')
 
       // get embeddings list for all the pages of the split pdf
-      const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small') 
+     // const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small') 
       let embeddingsList = [];
       for (const [index, body] of docOutput.entries()) {
 
@@ -155,14 +155,37 @@ apiRoute.post(async (req, res) => {
           createdAt: new Date(),
           updatedAt: new Date()
         });
-
         newPage.save()
 
-        const output = await generateEmbedding(body.pageContent, {
-            pooling: 'mean',
-            normalize: true,
-        });
-        const embedding = Array.from(output.data);
+        // const output = await generateEmbedding(body.pageContent, {
+        //     pooling: 'mean',
+        //     normalize: true,
+        // });
+        // const embedding = Array.from(output.data);
+        let embedding = []
+        const dataForEmbed = {sentence: body.pageContent}
+        try {
+            const responseEmbed = await fetch(`${process.env.PYTHONURL}/embed`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify(dataForEmbed),
+            });
+    
+            if (!responseEmbed.ok) {
+                throw new Error(`Error: ${responseEmbed.statusText}`);
+            }
+    
+            embedding = await responseEmbed.json();
+        } catch (error) {
+            console.error('Error fetching embedding:', error);
+            throw error;
+        }
+
+
+
         embeddingsList.push({ id: `doc-${index}`, embedding }); // Use index as part of the ID
       }
       
