@@ -1,11 +1,11 @@
 import { middleware } from "../../middleware/middleware";
 import OpenAI from 'openai';
 import Pages from '../../models/Pages'
-import { pipeline } from '@xenova/transformers'
-import { env } from '@xenova/transformers'
+// import { pipeline } from '@xenova/transformers'
+// import { env } from '@xenova/transformers'
 import { Pinecone } from '@pinecone-database/pinecone';
 import axios from 'axios';
-env.cacheDir = '../../cache';
+// env.cacheDir = '../../cache';
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY, // This is the default and can be omitted
   });

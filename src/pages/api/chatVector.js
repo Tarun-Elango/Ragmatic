@@ -1,8 +1,8 @@
 const { createClient } = require('@supabase/supabase-js');
 import axios from 'axios';
 import { middleware } from "../../middleware/middleware";
-import { env } from '@xenova/transformers'
-env.cacheDir = '../../cache';
+// import { env } from '@xenova/transformers'
+// env.cacheDir = '../../cache';
 function dotProduct(vec1, vec2) {
     let product = 0;
     for (let i = 0; i < vec1.length; i++) {
