@@ -45,7 +45,6 @@ export default async function handler(req, res) {
         res.write(`data: ${JSON.stringify(message)}\n\n`);
     }
     res.write(`event: complete\ndata: {"message": "Stream complete"}\n\n`);
-    
 
 //   stream.on("push", (data) => {
 //     res.write(data);
