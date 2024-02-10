@@ -1531,8 +1531,6 @@ export const getServerSideProps = async (context) => {
         const data = response.data;
         const accessToken = data.access_token
 
-        console.log(accessToken)
-
         // Pass data to the page via props
         return { props: { accessToken } };
     } catch (error) {

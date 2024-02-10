@@ -132,7 +132,7 @@ apiRoute.post(async (req, res) => {
 
       const splitter = new RecursiveCharacterTextSplitter({
         chunkSize: 400,//500
-        chunkOverlap: 60,//70
+        chunkOverlap: 40,//70
       });
 
       const docOutput = await splitter.splitDocuments([
