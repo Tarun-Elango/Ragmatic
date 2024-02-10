@@ -1,16 +1,12 @@
-const fetchOpenAIAPI = async () => {
+const fetchOpenAIAPI = async (userInfo) => {
   
     const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-    console.log()
     if (!OPENAI_API_KEY) {
       throw new Response("Missing OPENAI_API_KEY", { status: 400 });
     }
-  
-    const prompt = `poem about autumn`;
-  
     const payload = {
       model: "gpt-3.5-turbo-0125",
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content: userInfo }],
       temperature:  0.1,
       stream: true,
     };

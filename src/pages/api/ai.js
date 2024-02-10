@@ -160,7 +160,7 @@ export default async function handler(req, res) {
                 "main_sentence": userQuery,
                 "queries": queryContent
             }
-            const rerankResponse = await fetch('http://127.0.0.1:5000/predict', {
+            const rerankResponse = await fetch(`${process.env.PYTHONURL}/predict`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -187,7 +187,7 @@ export default async function handler(req, res) {
 
         //create a final query for llm
         const pmt = `- User Query: ${userQuery}.- Context from Uploaded Document:${rankedContent}.-previousRelevantMessage:${pastMessage}.- Instruction to LLM: - Answer users Query, by thinking through the problem step by step. - Use the information from the uploaded document, supplemented with your own knowledge, to accurately and comprehensively answer the user's query. - If the document lacks sufficient or relevant details, rely on your knowledge base to provide an appropriate response, and if you cant come up with an answer say i dont know.- Additional Requirements: Keep the response concise, within 200 words. Refer to the previous relevant message only for context, and if no such message is found, ignore previous relevant message.`
-        console.log(pmt)
+        console.log(pmt.length)
 
         res.status(200).json(pmt);
 

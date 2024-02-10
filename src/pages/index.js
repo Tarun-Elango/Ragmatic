@@ -15,6 +15,7 @@ import ChatLoading from '../components/ChatLoading'
 import Guest from './guest'
 import io from 'socket.io-client';
 import styles from '../styles/home.module.css'
+import { createParser, ParseEvent } from "eventsource-parser";
 
 export default function Home({accessToken}) {
 
@@ -404,94 +405,232 @@ export default function Home({accessToken}) {
           type: "ai"
         };
 
+        // add the empty ai message to start the ai bubble
         setMessageList((prevMessages)=>[...prevMessages, initialEmpty]) 
-        //---------------------------------------------------------------- socket start ------------------------------------------------------------
-        if (!socket) { // Check if the socket is not already connected
-          // create a new connection, with token
-          const newSocket = io(process.env.SOCKETURL,{
-            query:{acctoken:token}
-          });
-            
-          newSocket.on('error', (data) => {
 
+        try{
+
+          const response = await fetch("/api/generate/edge", {
+            method: "POST",
+            headers: {
+              'Content-Type':'application/json',
+              'Authorization': `Bearer ${token}`
+          },
+            body: JSON.stringify({ userInfo: dataPmt }),
+          });
+    
+          if (response.status !== 200 || !response.body) {
+            console.error("Failed to Generate");
             // add the error to the message list
             setMessageList((prevMessages) => {
-            
-              currentAIMessage  = currentAIMessage+ data.data
-              const lastString =  prevMessages[prevMessages.length - 1] ;
-              const updatedLastString = lastString.text + data.data;
-              return [...prevMessages.slice(0, prevMessages.length - 1),
-                {...lastString, text:updatedLastString}];
-
+              
+              const lastMessage = prevMessages[prevMessages.length - 1];
+          // Concatenate new text to the last message's text
+          const updatedText = lastMessage.text + "Failed to generate a message";
+          // Update the last message with the new text
+          const updatedLastMessage = { ...lastMessage, text: updatedText };
+          // Update the message list with the updated last message
+          return [...prevMessages.slice(0, prevMessages.length - 1), updatedLastMessage];
             });
-
             // finsish the message processing 
+            setIsAiLoading(false)
+            openNotification('Erro occured while generating, please try again')
+            console.log('Disconnected by the server');
+          }
+
+                  // defined as a callback for handling events parsed by the createParser
+        const onParse = (event) => {
+          
+          //console.log('Event parsed', event); 
+          /**
+           * event:
+           * {type: 'event', id: undefined, event: undefined, data: '{"text":" our"}'}
+           * basically the response chunks
+           */
+          if (event.type === "event") {
+            const data = event.data;
+            try {
+              // if parsing is successful, 
+              const newText = JSON.parse(data).text ?? "";
+              // setGeneratedCoverLetter(prevText => {
+              //   const updatedText = prevText + newText;
+              //   //console.log('Updated text', updatedText); // Debug: Log updated text
+              //   return updatedText;
+              // });
+              setMessageList((prevMessages) => {
+                // currentAIMessage  = currentAIMessage+ newText
+                // const lastString =  prevMessages[prevMessages.length - 1] ;
+                // const updatedLastString = lastString.text + data.data;
+                // return [...prevMessages.slice(0, prevMessages.length - 1),
+                //   {...lastString, text:updatedLastString}];
+                const lastMessage = prevMessages[prevMessages.length - 1];
+          // Concatenate new text to the last message's text
+          const updatedText = lastMessage.text + newText;
+          // Update the last message with the new text
+          const updatedLastMessage = { ...lastMessage, text: updatedText };
+          // Update the message list with the updated last message
+          return [...prevMessages.slice(0, prevMessages.length - 1), updatedLastMessage];
+              });
+            } catch (e) {
+              console.error("Error parsing event data", e);
+            }
+          }
+        };
+
+        // read the stream with reader
+        const reader = response.body.getReader();
+        // decoder: bin to text
+        const decoder = new TextDecoder();
+        // takes a callback from onParse, to process the text
+        const parser = createParser(onParse);
+  
+
+        while (true) {
+          const { value, done } = await reader.read();
+  
+          if (done) {
+                                        // retrieve the last complete message
+                                        setMessageList((prevMessages) => {
+                                          const lastMessage = prevMessages[prevMessages.length - 1];
+                                          //console.log(lastMessage.text); // Print the entire previous message
+                                          
+                                          // call mongo store function
+                                          responseMessage = {
+                                            text:lastMessage.text,
+                                            timestamp: new Date().toLocaleString(),
+                                            align: 'left',
+                                          };
+
+                                          //addMessage(responseMessage, "ai")
+                                          //console.log(responseMessage.text, "botMessage", currentChat.id)
+                                          // add to users chat 
+                                          addMessageMongo(responseMessage.text, "botMessage", id)
+                                          
+                                          // add the current user+ai to supabase
+                                          postAiSupabase(responseMessage, id)
+                                          //newSocket.off('disconnect'); // Remove the disconnect event listener after it has been executed once
+                                          
+
+                                          return prevMessages; // Return the previous messages without modification
+                                        });
+
+                                        // finish the message retireval process on the ui
+                                        setIsAiLoading(false)
+                                        console.log('Disconnected by the server');
+                                        break;
+          }
+  
+          parser.feed(decoder.decode(value));
+        }
+
+
+
+        } catch (err) {
+          console.error(err);
+          // add the error to the message list
+          setMessageList((prevMessages) => {
+            
+            currentAIMessage  = currentAIMessage+ "Failed to Generate, please try again"
+            const lastString =  prevMessages[prevMessages.length - 1] ;
+            const updatedLastString = lastString.text + data.data;
+            return [...prevMessages.slice(0, prevMessages.length - 1),
+              {...lastString, text:updatedLastString}];
+          });
+          // finsish the message processing 
             setIsAiLoading(false)
             openNotification('Invalid token, please login again')
             console.log('Disconnected by the server');
-            setSocket(null);
-            // shut off the socket
-            newSocket.close()
-            //newSocket.emit('trigger_disconnect') //way to tell the server to disconnect
-            // router.push('/api/auth/logout')
-          })
-
-          newSocket.on('message', (data) => {
-    
-            // add messsage, weird way, hence be careful
-            setMessageList((prevMessages) => {
-              currentAIMessage  = currentAIMessage+ data.data
-              const lastString =  prevMessages[prevMessages.length - 1] ;
-              const updatedLastString = lastString.text + data.data;
-              return [...prevMessages.slice(0, prevMessages.length - 1),
-                {...lastString, text:updatedLastString}];
-            });
-
-            console.log('message received')
-          });
-        
-          newSocket.on('disconnect', async () => {
-            // on disconnect
-
-            // retrieve the last complete message
-            setMessageList((prevMessages) => {
-              const lastMessage = prevMessages[prevMessages.length - 1];
-              //console.log(lastMessage.text); // Print the entire previous message
-              
-              // call mongo store function
-              responseMessage = {
-                text:lastMessage.text,
-                timestamp: new Date().toLocaleString(),
-                align: 'left',
-              };
-
-              //addMessage(responseMessage, "ai")
-              //console.log(responseMessage.text, "botMessage", currentChat.id)
-              // add to users chat 
-              addMessageMongo(responseMessage.text, "botMessage", id)
-              
-              // add the current user+ai to supabase
-              postAiSupabase(responseMessage, id)
-              //newSocket.off('disconnect'); // Remove the disconnect event listener after it has been executed once
-              newSocket.close()
-
-              return prevMessages; // Return the previous messages without modification
-            });
-
-            // finish the message retireval process on the ui
-            setIsAiLoading(false)
-            console.log('Disconnected by the server');
-            setSocket(null); // Reset the socket state to allow reconnection
-          });
-          
-          // set the socket connection
-          setSocket(newSocket);
-
-          //start the socket connection
-          newSocket.emit('start', dataPmt);
-          console.log('Started');
         }
-        //---------------------------------------------------------------- socket end ------------------------------------------------------------
+
+
+
+        // //---------------------------------------------------------------- socket start ------------------------------------------------------------
+        // if (!socket) { // Check if the socket is not already connected
+        //   // create a new connection, with token
+        //   const newSocket = io('http://localhost:5000',{
+        //     query:{acctoken:accessToken}
+        //   });
+            
+        //   newSocket.on('error', (data) => {
+
+        //     // add the error to the message list
+        //     setMessageList((prevMessages) => {
+            
+        //       currentAIMessage  = currentAIMessage+ data.data
+        //       const lastString =  prevMessages[prevMessages.length - 1] ;
+        //       const updatedLastString = lastString.text + data.data;
+        //       return [...prevMessages.slice(0, prevMessages.length - 1),
+        //         {...lastString, text:updatedLastString}];
+
+        //     });
+
+        //     // finsish the message processing 
+        //     setIsAiLoading(false)
+        //     openNotification('Invalid token, please login again')
+        //     console.log('Disconnected by the server');
+        //     setSocket(null);
+        //     // shut off the socket
+        //     newSocket.close()
+        //     //newSocket.emit('trigger_disconnect') //way to tell the server to disconnect
+        //     // router.push('/api/auth/logout')
+        //   })
+
+        //   newSocket.on('message', (data) => {
+    
+        //     // add messsage, weird way, hence be careful
+        //     setMessageList((prevMessages) => {
+        //       currentAIMessage  = currentAIMessage+ data.data
+        //       const lastString =  prevMessages[prevMessages.length - 1] ;
+        //       const updatedLastString = lastString.text + data.data;
+        //       return [...prevMessages.slice(0, prevMessages.length - 1),
+        //         {...lastString, text:updatedLastString}];
+        //     });
+
+        //     console.log('message received')
+        //   });
+        
+        //   newSocket.on('disconnect', async () => {
+        //     // on disconnect
+
+        //     // retrieve the last complete message
+        //     setMessageList((prevMessages) => {
+        //       const lastMessage = prevMessages[prevMessages.length - 1];
+        //       //console.log(lastMessage.text); // Print the entire previous message
+              
+        //       // call mongo store function
+        //       responseMessage = {
+        //         text:lastMessage.text,
+        //         timestamp: new Date().toLocaleString(),
+        //         align: 'left',
+        //       };
+
+        //       //addMessage(responseMessage, "ai")
+        //       //console.log(responseMessage.text, "botMessage", currentChat.id)
+        //       // add to users chat 
+        //       addMessageMongo(responseMessage.text, "botMessage", id)
+              
+        //       // add the current user+ai to supabase
+        //       postAiSupabase(responseMessage, id)
+        //       //newSocket.off('disconnect'); // Remove the disconnect event listener after it has been executed once
+        //       newSocket.close()
+
+        //       return prevMessages; // Return the previous messages without modification
+        //     });
+
+        //     // finish the message retireval process on the ui
+        //     setIsAiLoading(false)
+        //     console.log('Disconnected by the server');
+        //     setSocket(null); // Reset the socket state to allow reconnection
+        //   });
+          
+        //   // set the socket connection
+        //   setSocket(newSocket);
+
+        //   //start the socket connection
+        //   newSocket.emit('start', dataPmt, accessToken);
+        //   console.log('Started');
+        // }
+        // //---------------------------------------------------------------- socket end ------------------------------------------------------------
         // const formattedResponse = formatOpenAiResponse(JSON.stringify(data).slice(1, -1));
       } catch (error) {
         setIsAiLoading(false)
@@ -1377,6 +1516,8 @@ export default function Home({accessToken}) {
 
 
 export const getServerSideProps = async (context) => {
+
+  // try this https://auth0.github.io/nextjs-auth0/types/session_get_access_token.GetAccessToken.html
     try {
         // Fetch data from external API for accesstoken
         const postData = `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"${process.env.AUTH0_AUD}","grant_type":"client_credentials"}`
