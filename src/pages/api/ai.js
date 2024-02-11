@@ -26,19 +26,6 @@ export default async function handler(req, res) {
       const docId = req.body.docId
       const docName = req.body.docName 
       const pastMessage = req.body.pMessage  
-      
-        //////////////////////////get client accesstoken from auth0
-            const postData = `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"${process.env.AUTH0_AUD}","grant_type":"client_credentials"}`
-            const headers = {
-                'Content-Type': 'application/json',
-            }
-
-            const response = await axios.post(process.env.AUTH0_TOKEN, postData, { headers });
-
-            // Extract the data from the response
-            const data = response.data;
-            const accessToken = data.access_token
-        ////////////////////////////
 
   try {
         const startTime = performance.now();
