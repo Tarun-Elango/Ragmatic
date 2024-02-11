@@ -1,8 +1,9 @@
 import { middleware } from "../../middleware/middleware";
 import Pages from '../../models/Pages'
-// import { pipeline } from '@xenova/transformers'
+import { pipeline } from '@xenova/transformers'
 // import { env } from '@xenova/transformers'
 // env.cacheDir = '../../cache';
+import getTopSimilarSentences from '../../utils/crossEncoder'
 import { Pinecone } from '@pinecone-database/pinecone';
 import axios from 'axios';
 
@@ -10,20 +11,6 @@ const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
   environment: process.env.PINECONE_ENVIRONMENT,
 });
-
-//\n4. Use your knowledge for related questions.
-// For completely Unrelated queries: respond with 'Sorry, please ask a relevant question'
-//.\n5.Refer to past conversations for context.
-
-// create a system for llm to follow using prompt engineering, tools, function calling
-
-//**only if task is big, not needed for small tasks */ prompt chaingin: use llm to break(into several steps using your brain in right order(each task will have its owns topk embeddings)) task into subtasks, llm is prompted with a subtask, and its response is used as for other subtasks until all complete
-// almost like think step by step, but do step by step
-// combine cot with tool use, see if tool is needed when moving to a next step
-//https://www.promptingguide.ai/techniques/prompt_chaining
-
-// tree of thought: each step 3 thoughts take the most sure thought and proceed
-
 
 export default async function handler(req, res) {
     const result = await middleware(req);
@@ -57,36 +44,13 @@ export default async function handler(req, res) {
         const startTime = performance.now();
 
         //get the users embeddings
-        let embedding = [] // store result here
-        const dataForEmbed = {sentence: userQuery}
-        try {
-            const responseEmbed = await fetch(`${process.env.PYTHONURL}/embed`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
-                },
-                body: JSON.stringify(dataForEmbed),
-            });
-    
-            if (!responseEmbed.ok) {
-                throw new Error(`Error: ${responseEmbed.statusText}`);
-            }
-    
-            embedding = await responseEmbed.json();
-        } catch (error) {
-            console.error('Error fetching embedding:', error);
-            res.status(500).json("Could not produce embdedding for the user query");
-        }
-
-
-        // const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small');
-        // const embeddingResult = await generateEmbedding(userQuery, {
-        //     pooling: 'mean',
-        //     normalize: true,
-        // });
-        // // Ensure that the output is an array
-        // //const embedding = Array.from(embeddingResult.data);
+        const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small');
+        const embeddingResult = await generateEmbedding(userQuery, {
+            pooling: 'mean',
+            normalize: true,
+        });
+        // Ensure that the output is an array
+        const embedding = Array.from(embeddingResult.data);
     
         // pinecone query results
         const customNamespace = docName;
@@ -97,11 +61,11 @@ export default async function handler(req, res) {
         let queryRequest={}
 
         // Check if the namespace size > 15, and form query accordingly
-        if (namespaceVectorLength > 20) {
+        if (namespaceVectorLength > 15) {
             // get the 2 closet vector
             queryRequest = {
                 vector: embedding,
-                topK: 20,
+                topK: 15,
                 includeValues: false,
                 includeMetadata: true
             }
@@ -155,32 +119,14 @@ export default async function handler(req, res) {
         // reranking step
         let startTimeRerank = process.hrtime();
         let rankedContent=""
+
         try {
-            const rerankData = {
-                "main_sentence": userQuery,
-                "queries": queryContent
-            }
-            const rerankResponse = await fetch(`${process.env.PYTHONURL}/predict`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`
-            },
-            body: JSON.stringify(rerankData),
-            });
-
-            if (!rerankResponse.ok) {
-            throw new Error(`Error: ${rerankResponse.status}`);
-            }
-
-            rankedContent = await rerankResponse.json();
-            // console.log(rerankPythn)
-            //res.status(200).json(rerankPythn);
+            rankedContent = await getTopSimilarSentences(userQuery, queryContent); // Await the result of getTopSimilarSentences
+            // console.log("Top 5 similar sentences:", rankedContent);
         } catch (error) {
-            res.status(500).json({ error })
-            console.log(error)
-            //res.status(500).json({ message: error.message });
+            console.error(error); // Handle any errors that occur during getTopSimilarSentences
         }
+
         let diffRe = process.hrtime(startTimeRerank);
         let secondsre = diffRe[0] + diffRe[1] / 1e9; // Convert nanoseconds to seconds
         console.log(`Execution time rerank: ${secondsre} seconds`);

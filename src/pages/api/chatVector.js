@@ -1,6 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
-import axios from 'axios';
+import { pipeline } from '@xenova/transformers'
 import { middleware } from "../../middleware/middleware";
+import axios from 'axios';
 // import { env } from '@xenova/transformers'
 // env.cacheDir = '../../cache';
 function dotProduct(vec1, vec2) {
@@ -71,7 +72,7 @@ export default async function handler(req, res) {
       res.status(400).json({ success: false, message: result.message });
     } else {
         const { chatId, userQuery, combinedMessage } = req.body;
-        
+        const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small');
         //////////////////////////get client accesstoken from auth0
             const postData = `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"${process.env.AUTH0_AUD}","grant_type":"client_credentials"}`
             const headers = {
@@ -94,33 +95,12 @@ export default async function handler(req, res) {
                 // retrive most relevant vector embedding
             
                 // get the embdedding of userquery
-                let embeddingUserQuery = []
-                const dataForEmbed = {sentence: userQuery}
-                try {
-                    const responseEmbed = await fetch(`${process.env.PYTHONURL}/embed`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${accessToken}`
-                        },
-                        body: JSON.stringify(dataForEmbed),
-                    });
-            
-                    if (!responseEmbed.ok) {
-                        throw new Error(`Error: ${responseEmbed.statusText}`);
-                    }
-            
-                    embeddingUserQuery = await responseEmbed.json();
-                } catch (error) {
-                    console.error('Error fetching embedding:', error);
-                    throw error;
-                }
-                // const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small');
-                // const embeddingResultUser = await generateEmbedding(userQuery, {
-                //     pooling: 'mean',
-                //     normalize: true,
-                // });
-                // const embeddingUserQuery = Array.from(embeddingResultUser.data);
+                
+                const embeddingResultUser = await generateEmbedding(userQuery, {
+                    pooling: 'mean',
+                    normalize: true,
+                });
+                const embeddingUserQuery = Array.from(embeddingResultUser.data);
 
 
                 // get all chat messages by current chat id
@@ -168,33 +148,12 @@ export default async function handler(req, res) {
 
             // get the embeddings of the combined message
             //get the combined message embeddings
-            let embedding = [] //store here
-            const dataForEmbed = {sentence: combinedMessage}
-            try {
-                const responseEmbed = await fetch(`${process.env.PYTHONURL}/embed`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${accessToken}`
-                    },
-                    body: JSON.stringify(dataForEmbed),
-                });
-        
-                if (!responseEmbed.ok) {
-                    throw new Error(`Error: ${responseEmbed.statusText}`);
-                }
-        
-                embedding = await responseEmbed.json();
-            } catch (error) {
-                console.error('Error fetching embedding:', error);
-                throw error;
-            }
-            // const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small');
-            // const embeddingResult = await generateEmbedding(combinedMessage, {
-            //     pooling: 'mean',
-            //     normalize: true,
-            // });
-            // const embedding = Array.from(embeddingResult.data);
+
+            const embeddingResult = await generateEmbedding(combinedMessage, {
+                pooling: 'mean',
+                normalize: true,
+            });
+            const embedding = Array.from(embeddingResult.data);
 
             // add to db
             const response =  insertVectorEmbedding(chatId, combinedMessage, embedding)

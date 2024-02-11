@@ -48,12 +48,12 @@ export default async function handler(req, res) {
             docuName: docuName
         });
         if (existingUserDocu) {
-            return res.status(400).json({ error: 'User\'s document already exists' });
+            return res.status(200).json({ message:'document already exists' });
         } else {
             try {
-                const document = new Document({ userRefID, docuName });
+                const document = new Document({userRefID, docuName });
                 await document.save();
-                return res.status(201).json(document);
+                return res.status(201).json({message:'Doc added success',result:document});
             } catch (error) {
                 return res.status(500).json({ error: 'Error creating user\'s document' });
             }

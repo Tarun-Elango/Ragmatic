@@ -5,11 +5,9 @@ import { Document } from "@langchain/core/documents";
 const PDFParser = require('pdf-parse');
 import axios from 'axios';
 import { Pinecone } from '@pinecone-database/pinecone';
-// import { pipeline } from '@xenova/transformers'
-// import { env } from '@xenova/transformers'
+import { pipeline } from '@xenova/transformers'
 import Pages from '../../models/Pages'
 import { middleware } from "../../middleware/middleware";
-// env.cacheDir = '../../cache';
 
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
@@ -113,7 +111,6 @@ apiRoute.post(async (req, res) => {
       }
   
       mongoResponse = await response.json();
-      console.log(mongoResponse)
       // Process the response data as needed
       } catch (error) {
         if (error.response) {
@@ -141,13 +138,13 @@ apiRoute.post(async (req, res) => {
       console.log(docOutput.length, 'length of doc')
 
       // get embeddings list for all the pages of the split pdf
-     // const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small') 
+      const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small') 
       let embeddingsList = [];
       for (const [index, body] of docOutput.entries()) {
 
         // add page to mongodb
         const newPage = new Pages({
-          document: mongoResponse.docuId,
+          document: mongoResponse.result.docuId,
           userID: userId,
           PageNumber: index.toString(),
           PageText: body.pageContent,
@@ -163,28 +160,12 @@ apiRoute.post(async (req, res) => {
         // });
         // const embedding = Array.from(output.data);
 
-        // call embed api
-        let embedding = []
-        const dataForEmbed = {sentence: body.pageContent}
-        try {
-            const responseEmbed = await fetch(`${process.env.PYTHONURL}/embed`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
-                },
-                body: JSON.stringify(dataForEmbed),
-            });
-    
-            if (!responseEmbed.ok) {
-                throw new Error(`Error: ${responseEmbed.statusText}`);
-            }
-    
-            embedding = await responseEmbed.json();
-        } catch (error) {
-            console.error('Error fetching embedding:', error);
-            throw error;
-        }
+
+        const output = await generateEmbedding(body.pageContent, {
+          pooling: 'mean',
+          normalize: true,
+      });
+      const embedding = Array.from(output.data);
 
         // store in this list
         embeddingsList.push({ id: `doc-${index}`, embedding }); // Use index as part of the ID
