@@ -22,7 +22,7 @@ function AboutModal({ hideAboutModal }) {
   return (
     <Modal 
     open={isModalVisible} 
-    title="JotDown: Your Friendly Resource Assitant!" 
+    title="Resource-labs: Your Friendly Resource Assitant!" 
     onCancel={handleCancel}
     footer={[
       <div key="footer-content" style={{ display: 'flex', alignItems: 'center' }}>
@@ -39,16 +39,15 @@ function AboutModal({ hideAboutModal }) {
         <strong>Supported File Types:</strong>
             <ul style={{ listStyleType: 'disc', padding: 0 }}>
             <li>PDFs</li>
-            <strong>Future support:</strong>
             <li>Word Documents</li>
             <li>Text Files</li>
+            <li>Regular old plain text</li>
+            <strong>Future support:</strong>
             <li>Excel Spreadsheets</li>
             <li>Website URL content</li>
             <li>YouTube Videos</li>
-            <li>MP4 Videos</li>
-            <li>MP3 Audio</li>
             <li>Images</li>
-            <li>Regular old plain text</li>
+            
         </ul>
 
         </div>

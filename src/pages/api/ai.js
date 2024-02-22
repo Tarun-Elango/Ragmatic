@@ -1,9 +1,10 @@
+/**
+
+ */
+
 import { middleware } from "../../middleware/middleware";
 import Pages from '../../models/Pages'
-import { pipeline } from '@xenova/transformers'
-// import { env } from '@xenova/transformers'
-// env.cacheDir = '../../cache';
-import getTopSimilarSentences from '../../utils/crossEncoder'
+// import { pipeline } from '@xenova/transformers'
 import { Pinecone } from '@pinecone-database/pinecone';
 import axios from 'axios';
 
@@ -11,6 +12,8 @@ const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
   environment: process.env.PINECONE_ENVIRONMENT,
 });
+
+// const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small');
 
 export default async function handler(req, res) {
     const result = await middleware(req);
@@ -23,77 +26,125 @@ export default async function handler(req, res) {
         return;
       }
       const userQuery = req.body.prompt
-      const docId = req.body.docId
-      const docName = req.body.docName 
-      const pastMessage = req.body.pMessage  
 
-  try {
+      const pastMessage = req.body.pMessage  
+      const docListUserSelected = req.body.selectedDocList
+      console.log(docListUserSelected)
+
+  try {//////////////////////////get client accesstoken from auth0
+    const postData = `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"${process.env.AUTH0_AUD}","grant_type":"client_credentials"}`
+    const headers = {
+        'Content-Type': 'application/json',
+    }
+
+    const response = await axios.post(process.env.AUTH0_TOKEN, postData, { headers });
+
+    // Extract the data from the response
+    const data = response.data;
+    const accessToken = data.access_token // this has the accesstoken
         const startTime = performance.now();
 
-        //get the users embeddings
-        const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small');
-        const embeddingResult = await generateEmbedding(userQuery, {
-            pooling: 'mean',
-            normalize: true,
-        });
-        // Ensure that the output is an array
-        const embedding = Array.from(embeddingResult.data);
-    
-        // pinecone query results
-        const customNamespace = docName;
-        const index = pinecone.index('jotdown').namespace(customNamespace)
-        const stats = await index.describeIndexStats()
-        const namespaceVectorLength = stats.namespaces[customNamespace].recordCount     
+        // //get the users embeddings
+        // const embeddingResult = await generateEmbedding(userQuery, {
+        //     pooling: 'mean',
+        //     normalize: true,
+        // });
+        // // Ensure that the output is an array
+        // const embedding = Array.from(embeddingResult.data);
 
-        let queryRequest={}
 
-        // Check if the namespace size > 15, and form query accordingly
-        if (namespaceVectorLength > 15) {
-            // get the 2 closet vector
-            queryRequest = {
-                vector: embedding,
-                topK: 15,
-                includeValues: false,
-                includeMetadata: true
-            }
-        } else {
-            // Return a message or handle the case where the namespace is not found
-            // get the 2 closet vector
-            queryRequest = {
-                vector: embedding,
-                topK: namespaceVectorLength,
-                includeValues: false,
-                includeMetadata: true
-            }
+        const requestBody ={
+            "sentences":[userQuery]
         }
-        
-        const response = await index.query(queryRequest); 
-        const endTime = performance.now();
+        let embeddingArray=[]
+        try {
+            // Make a POST request to the server endpoint
+            const response = await fetch(`${process.env.BASEURL}/api/ebd`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+              },
+              body: JSON.stringify(requestBody)
+            });
+          
+            // Check if the request was successful
+            if (!response.ok) {
+              throw new Error(`Error: ${response.statusText}`);
+            }
+          
+            // Parse the JSON response
+            const dataemb = await response.json();
+            embeddingArray = dataemb.embeddings[0].embedding
+          
+          } catch (error) {
+            console.error('Failed to fetch embeddings:', error);
+            return res.status(400).json({ error: 'Open ai embedding error', message:'Open ai embedding error' });
+          }
 
+        let responsePineConeList=[]
+        // for loop pine cone to get all selected docs, store responses in an array
+        for (let i = 0; i < docListUserSelected.length; i++){
+            // pinecone query results
+            const customNamespace = docListUserSelected[i].docuName;
+            const index = pinecone.index('jotdown').namespace(customNamespace)
+            const stats = await index.describeIndexStats()
+            const namespaceVectorLength = stats.namespaces[customNamespace].recordCount    
+
+            // Form the query request
+            let queryRequest={}
+            // Check if the namespace size > 15, and form query accordingly
+            let topKValue = Math.min(namespaceVectorLength, 5);
+            // Form the query request
+            queryRequest = {
+                vector: embeddingArray,
+                topK: topKValue,
+                includeValues: false,
+                includeMetadata: true
+            };
+
+            const response = await index.query(queryRequest);
+            responsePineConeList.push(response);
+        }
+
+        console.log('pinecone response length', responsePineConeList)
+         
+        const endTime = performance.now();
         // Calculate the elapsed time
         const elapsedTime = endTime - startTime;
-
         const elapsedTimeInSeconds = elapsedTime / 1000;
         console.log(`Execution time getting pinecone: ${elapsedTimeInSeconds} seconds`);
         let startMongo = process.hrtime();
 
+
+
         // get the pages from mongo with given docid and pinecone emb id, 
         let queryContent = [] //store in list
-        try{for (const match of response.matches){
-            //values.id has the page id
-            // and use docid to searh mongo
-            const pageContent = await Pages.find({ document:docId, embeddingsID: match.id })
-            // console.log(counter)
-            // add to queryLust 
-            //queryContent = queryContent + pageContent.PageText
-            const pageObject = pageContent[0];
+        try{
 
-            // Extracting the PageText
-            const pageTextString = pageObject.PageText;
-            const combinedTextString = pageTextString.replace(/\n/g, ' ');
+            // we have a list of response from pinecone, for each response get its pages and combine all he pages into querycontent
+        for (let i=0; i<responsePineConeList.length; i++){
+            for (const match of responsePineConeList[i].matches){
+                //values.id has the page id
+                // and use docid to searh mongo
+                const pageContent = await Pages.find({ document:docListUserSelected[i].docuId, embeddingsID: match.id })
+                // console.log(counter)
+                // add to queryLust 
+                //queryContent = queryContent + pageContent.PageText
+                const pageObject = pageContent[0];
+
+                // Extracting the PageText
+                const pageTextString = pageObject.PageText;
+                const combinedTextString = pageTextString.replace(/\n/g, ' ');
+                
+                queryContent.push(combinedTextString);
+                
+            }
+            console.log(docListUserSelected[i].docuId )
+            //console.log('mongo response length', queryContent)
+        }
             
-            queryContent.push(combinedTextString);
-        }}
+         }
         catch(e){
             console.log(e)
             res.status(500).json("Could not load your document, please try again.");
@@ -101,17 +152,37 @@ export default async function handler(req, res) {
         let diff = process.hrtime(startMongo);
         let seconds = diff[0] + diff[1] / 1e9; // Convert nanoseconds to seconds
         console.log(`Execution time mongo: ${seconds} seconds`);
-        //console.log(queryContent)
         
         // reranking step
         let startTimeRerank = process.hrtime();
         let rankedContent=""
-
+        if (docListUserSelected.length>0){
         try {
-            rankedContent = await getTopSimilarSentences(userQuery, queryContent); // Await the result of getTopSimilarSentences
-            // console.log("Top 5 similar sentences:", rankedContent);
+             
+
+            const rerankData = {
+                "main_sentence": userQuery,
+                "queries": queryContent
+            }
+            const rerankResponse = await fetch(`${process.env.PYTHONURL}/predict`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            },
+            body: JSON.stringify(rerankData),
+            });
+
+            if (!rerankResponse.ok) {
+            throw new Error(`Error: ${rerankResponse.status}`);
+            }
+
+            rankedContent = await rerankResponse.json();
         } catch (error) {
-            console.error(error); // Handle any errors that occur during getTopSimilarSentences
+            res.status(500).json({ error })
+            console.log(error)
+            //res.status(500).json({ message: error.message });
+        }
         }
 
         let diffRe = process.hrtime(startTimeRerank);

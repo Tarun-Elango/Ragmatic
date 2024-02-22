@@ -7,10 +7,10 @@ export default function App({ Component, pageProps }) {
   return (
     <>
     <Head>
-        <title>JotDown</title>
+        <title>Resource-labs</title>
         <meta
             name="description"
-            content="JotDown - An AI document Assitant."
+            content="Resource-labs - An AI document Assitant."
         />
         <meta
             name="viewport"

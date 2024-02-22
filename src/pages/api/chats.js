@@ -1,6 +1,7 @@
 import connectDB from '../../helper/mongodb';
 import Mes from '../../models/Mes';
 import Chat from '../../models/Chat'
+import ChatV2 from '../../models/ChatV2'
 import { middleware } from "../../middleware/middleware";
 const { createClient } = require('@supabase/supabase-js');
 // Create a single Supabase client for interacting with your database
@@ -23,12 +24,12 @@ export default async function handler(req, res) {
     // get chats by user and document choosen
     if (req.method === 'GET') {
         try {
-          const { userID, document } = req.query;
-          if (!userID || !document) {
+          const { userID } = req.query;
+          if (!userID) {
             return res.status(400).json({ success: false, message: 'Missing userID or document' });
           }
     
-          const chats = await Chat.find({ userID, document });
+          const chats = await ChatV2.find({ userID });
           res.status(200).json({ success: true, data: chats });
         } catch (error) {
           res.status(500).json({ success: false, message: 'Server Error', error: error.message });
@@ -37,12 +38,12 @@ export default async function handler(req, res) {
 ///////////////////////////////////////////////////////////// create a new chat for user, selected document and a given name
       else if (req.method === 'POST') {
         try {
-          const { userID, document, chatName } = req.body;
-          if (!userID || !document || !chatName) {
+          const { userID,  chatName } = req.body;
+          if (!userID ||  !chatName) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
           }
-    
-          const newChat = new Chat({ userID, document, chatName });
+        const document = ["none"]
+          const newChat = new ChatV2({ userID, document, chatName });
           const savedChat = await newChat.save();
           res.status(201).json({ success: true, data: savedChat });
         } catch (error) {
@@ -58,7 +59,7 @@ else if (req.method === 'DELETE') {
             return res.status(400).send('chatId is required');
         }
           // Delete the chat
-          const deletedChat = await Chat.findByIdAndDelete(chatId);
+          const deletedChat = await ChatV2.findByIdAndDelete(chatId);
           if (!deletedChat) {
             return res.status(404).json({ success: false, message: 'Chat not found' });
           }
@@ -86,5 +87,5 @@ else if (req.method === 'DELETE') {
       } else {
         res.status(405).json({ success: false, message: 'Method Not Allowed' });
       }
-}
+    }
 }

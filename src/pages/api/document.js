@@ -79,7 +79,7 @@ export default async function handler(req, res) {
             return res.status(404).json({ success: false, message: 'No documents found with the specified docId' });
           }
         console.log('deleting pinecone')
-        console.log(result)
+        console.log('mongo document deleted',result)
         console.log('-----------------------------')
        // get all chats for doc
         const chats = await Chat.find({ document: docId });

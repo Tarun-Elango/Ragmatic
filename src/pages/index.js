@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState} from 'react';
 import { useRouter } from 'next/router';
-import {  UserOutlined, InfoCircleOutlined, PlusCircleOutlined, DoubleLeftOutlined,DoubleRightOutlined, RocketOutlined, DeleteOutlined,WarningOutlined,SearchOutlined, CalculatorOutlined, PictureOutlined ,CloudUploadOutlined } from '@ant-design/icons';
-import { Button, Input,Tooltip, Menu,List,Modal,notification, Switch  } from 'antd';
+import {  UserOutlined, InfoCircleOutlined, PlusCircleOutlined, DoubleLeftOutlined,DoubleRightOutlined, RocketOutlined, DeleteOutlined,WarningOutlined,SearchOutlined, CalculatorOutlined, SettingOutlined ,CloudUploadOutlined } from '@ant-design/icons';
+import { Button, Input,Tooltip, Menu,List,Modal,notification, Switch, Checkbox  } from 'antd';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import Head from 'next/head'
 import LoadingComponent from '../components/LoadingComponent'
@@ -13,9 +13,8 @@ import axios from 'axios';
 import OpaqueLoading from '../components/OpaqueLoading'
 import ChatLoading from '../components/ChatLoading'
 import Guest from './guest'
-import io from 'socket.io-client';
-import styles from '../styles/home.module.css'
-import { createParser, ParseEvent } from "eventsource-parser";
+import { createParser } from "eventsource-parser";
+
 
 export default function Home({accessToken}) {
 
@@ -30,7 +29,6 @@ export default function Home({accessToken}) {
       });
     };
 
-    
   const { TextArea } = Input;
 
   const token = accessToken
@@ -40,7 +38,9 @@ export default function Home({accessToken}) {
   const [docArray, setDocArray] =useState([])
   const [inputText, setInputText] = useState('');
 
-  const [currentDocuIndex, setCurrentDocuIndex] = useState(0) 
+  // const [currentDocuIndex, setCurrentDocuIndex] = useState(0) 
+  const [selectedDoc, setSelectedDoc] = useState([])
+
   const [currentChat, setCurrentChat] = useState({ index: null, id: null });
 
   const [isUploadOpen, setIsUploadOpen] = useState(false)
@@ -57,19 +57,20 @@ export default function Home({accessToken}) {
   const [ deleteChatMessag, setDeleteChatMessage ] = useState(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [messageList, setMessageList] = useState([]);
 
   const text = <span> About</span>;
   const newUpload = <span>Upload new Resource</span>
   const openChat = <span>Open ChatBar</span>
   const closeChat = <span>Close ChatBar</span>
-  const Vanilla = <span>Vanilla Mode: Ignore the resource and use plain AI.</span>
   const search = <span>Search Mode: Use web search for additional power.</span>
-  const calculator = <span>Calculator Mode: Use a calculator to reliably perform math.</span>
-  const dalle = <span>Produce an image (based on provided resource). Max 2images/resource/day</span>
-  const rocket = <span>Rocket mode: Harness all resources to answer your query 10 per day</span>
+  const calculator = <span>Calculator Mode: AI uses a calculator to reliably perform math.</span>
+  const rocket = <span>Assistants mode (2 per day)</span>
   const [isSearchActive, setSearchActive] = useState(false);
   const [isCalculatorActive, setCalculatorActive] = useState(false);
   const [isVanillaMode, setIsVanillaMode] = useState(false);
+  const [isAssitantsMode, setisAssitantsMode] = useState(false)
+
 
   const vanillaMode = async () => {
     setIsVanillaMode(prevIsVanillaMode => {
@@ -77,7 +78,15 @@ export default function Home({accessToken}) {
       console.log(`vanilla mode ${newState ? 'on' : 'off'}`);
       return newState;
     });
+    console.log(selectedDoc)
   };
+    const assistantsMode = async () => {
+      setisAssitantsMode(prevIsastMode => {
+        const newState = !prevIsastMode;
+        console.log(`Assitants mode ${newState ? 'on' : 'off'}`);
+        return newState;
+      });
+    };
   
   // Function to toggle search icon active state
   const toggleSearch = () => {
@@ -105,16 +114,16 @@ export default function Home({accessToken}) {
   
   // function to select a new doc
   const handleSelect = (item) => {
-      setMessageList([])
-      setCurrentChat({ index: null, id: null })
-      const index = typeArray.indexOf(item);
-      setCurrentDocuIndex(index);
-      localStorage.setItem('lastDocIndex', index); // Update local storage
+      // setMessageList([])
+      // setCurrentChat({ index: null, id: null })
+      // const index = typeArray.indexOf(item);
+      // setCurrentDocuIndex(index);
+      // localStorage.setItem('lastDocIndex', index); // Update local storage
   
-      // Fetch chats for the selected document
-      const selectedDocument = docArray[index]; // Assuming docArray contains all documents
-      fetchChatMessages(user.sub, selectedDocument.docuId); // Replace 'id' with the actual property name for document ID
-      setIsModalVisible(false); // Close modal on selection
+      // // Fetch chats for the selected document
+      // const selectedDocument = docArray[index]; // Assuming docArray contains all documents
+      // fetchChatMessages(user.sub, selectedDocument.docuId); // Replace 'id' with the actual property name for document ID
+      // setIsModalVisible(false); // Close modal on selection
   };
   
 
@@ -143,8 +152,7 @@ export default function Home({accessToken}) {
       }
   }
 
-  const [messageList, setMessageList] = useState([]);
-
+  
   // to message to current messagelist
   const addMessage = (newMessage, messageType) => {
       const timestamp = new Date().toISOString(); // ISO string format for timestamp
@@ -208,10 +216,13 @@ export default function Home({accessToken}) {
         } else {
           ctName = inputText.substring(0, 15);
       }
-
+      // create a list of docid from selecteddoclist
+      // const docuIds = selectedDoc.map(doc => doc.docuId);
+      // console.log('[[[[[[[[[[[[[[[')
+      // console.log(docuIds)
       const postData = {
           userID:user.sub,
-          document:docArray[currentDocuIndex].docuId,
+          
           chatName:ctName,
         }
 
@@ -241,7 +252,11 @@ export default function Home({accessToken}) {
 
   // function to handle send button 
   const handleButtonClick = async () => {
-
+    if (window.innerWidth < 800) {
+      setTextAreaRows(1);
+    } else {
+      setTextAreaRows(2);
+    }
       let updatedChat = currentChat;
       // for empty messagelist
       if (currentChat.index == null || currentChat.id == null) {
@@ -281,32 +296,38 @@ export default function Home({accessToken}) {
           // get the ai response, which handles ai message insertion to message list
           await fetchAiResponse(updatedChat.id);   
       }
-
+      
       // take the user+ai message send to api with chatid
   };
 
   function formatOpenAiResponse(responseText) {
-    // Replace escaped double quotes with the desired format
-    let formattedText = responseText.replace(/\\"/g, '"');
-
-    // Replace line breaks with <br> tags
-    formattedText = formattedText.replace(/\n\n/g, '<br/><br/>').replace(/\n/g, '<br/>');
-
-    // Regular expression to identify URLs
+    // Initial replacements for escaped quotes and line breaks
+    let formattedText = responseText.replace(/\\"/g, '"')
+                                     .replace(/\n\n/g, '<br/><br/>')
+                                     .replace(/\n/g, '<br/>');
+  
+    // URL formatting
     const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/gi;
-
-    // Replace URLs with clickable links
-    formattedText = formattedText.replace(urlRegex, function(url) {
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #4A90E2;">${url}</a>`;
+    formattedText = formattedText.replace(urlRegex, url => `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #4A90E2;">${url}</a>`);
+  
+    // Code block formatting for codinf output
+    const codeBlockRegex = /```([\s\S]*?)```/g;
+    formattedText = formattedText.replace(codeBlockRegex, match => {
+      // Remove the ```python and ``` delimiters
+      const codeContent = match.replace(/```|```/g, '').trim();
+      // Wrap the code content in a styled pre and code block
+      return `<pre style="background-color:	#333333; border-radius: 10px; padding: 10px;"><code style="white-space: pre-wrap;">${codeContent}</code></pre>`;
     });
-
+  
     return formattedText;
   }
-
-  // for the html component
+  
+  // React component for rendering the formatted message
   const FormattedMessage = ({ text }) => {
     return <div dangerouslySetInnerHTML={{ __html: text }}></div>;
   };
+  
+  
 
   const postAiSupabase =async (responseMessage,id)=>{
     // send to supabase the user query and the response. for vector storage
@@ -336,8 +357,7 @@ export default function Home({accessToken}) {
  }
 
   const [isAiLoading, setIsAiLoading]= useState(false)
-  const [socket, setSocket] = useState(null);
-
+  
   const fetchAiResponse = async (id) => {
     let responseMessage =""
     
@@ -373,9 +393,9 @@ export default function Home({accessToken}) {
         if (!isVanillaMode){
           const openAiData = {
             prompt:inputText,
-            docId: docArray[currentDocuIndex].docuId,
-            docName: docArray[currentDocuIndex].docuName,
+           
             pMessage: supabasePastRetreive.length === 0 ? "none" : supabasePastRetreive.message,
+            selectedDocList:selectedDoc
           }
           const apiFetch = await fetch('api/ai', {
               method: 'POST',
@@ -389,7 +409,7 @@ export default function Home({accessToken}) {
         } else {
           dataPmt = `- User Query: ${inputText}.-previousRelevantMessage:${supabasePastRetreive.message}.- Instruction to LLM: - Respond to user query. - Think step by step before answering. - Keep the response concise, within 200 words. - Refer to the previous relevant message only for context, and if no such message is found, ignore previous relevant message.`
         }
-
+        //console.log(dataPmt)
         // get the response from open ai using sockets
         let currentAIMessage = ""
         const timestp = new Date().toISOString
@@ -425,12 +445,12 @@ export default function Home({accessToken}) {
             setMessageList((prevMessages) => {
               
               const lastMessage = prevMessages[prevMessages.length - 1];
-          // Concatenate new text to the last message's text
-          const updatedText = lastMessage.text + "Failed to generate a message";
-          // Update the last message with the new text
-          const updatedLastMessage = { ...lastMessage, text: updatedText };
-          // Update the message list with the updated last message
-          return [...prevMessages.slice(0, prevMessages.length - 1), updatedLastMessage];
+              // Concatenate new text to the last message's text
+              const updatedText = lastMessage.text + "Failed to generate a message";
+              // Update the last message with the new text
+              const updatedLastMessage = { ...lastMessage, text: updatedText };
+              // Update the message list with the updated last message
+              return [...prevMessages.slice(0, prevMessages.length - 1), updatedLastMessage];
             });
             // finsish the message processing 
             setIsAiLoading(false)
@@ -452,24 +472,15 @@ export default function Home({accessToken}) {
             try {
               // if parsing is successful, 
               const newText = JSON.parse(data).text ?? "";
-              // setGeneratedCoverLetter(prevText => {
-              //   const updatedText = prevText + newText;
-              //   //console.log('Updated text', updatedText); // Debug: Log updated text
-              //   return updatedText;
-              // });
               setMessageList((prevMessages) => {
-                // currentAIMessage  = currentAIMessage+ newText
-                // const lastString =  prevMessages[prevMessages.length - 1] ;
-                // const updatedLastString = lastString.text + data.data;
-                // return [...prevMessages.slice(0, prevMessages.length - 1),
-                //   {...lastString, text:updatedLastString}];
+        
                 const lastMessage = prevMessages[prevMessages.length - 1];
-          // Concatenate new text to the last message's text
-          const updatedText = lastMessage.text + newText;
-          // Update the last message with the new text
-          const updatedLastMessage = { ...lastMessage, text: updatedText };
-          // Update the message list with the updated last message
-          return [...prevMessages.slice(0, prevMessages.length - 1), updatedLastMessage];
+                // Concatenate new text to the last message's text
+                const updatedText = lastMessage.text + newText;
+                // Update the last message with the new text
+                const updatedLastMessage = { ...lastMessage, text: updatedText };
+                // Update the message list with the updated last message
+                return [...prevMessages.slice(0, prevMessages.length - 1), updatedLastMessage];
               });
             } catch (e) {
               console.error("Error parsing event data", e);
@@ -489,35 +500,35 @@ export default function Home({accessToken}) {
           const { value, done } = await reader.read();
   
           if (done) {
-                                        // retrieve the last complete message
-                                        setMessageList((prevMessages) => {
-                                          const lastMessage = prevMessages[prevMessages.length - 1];
-                                          //console.log(lastMessage.text); // Print the entire previous message
-                                          
-                                          // call mongo store function
-                                          responseMessage = {
-                                            text:lastMessage.text,
-                                            timestamp: new Date().toLocaleString(),
-                                            align: 'left',
-                                          };
+              // retrieve the last complete message
+              setMessageList((prevMessages) => {
+                const lastMessage = prevMessages[prevMessages.length - 1];
+                //console.log(lastMessage.text); // Print the entire previous message
+                
+                // call mongo store function
+                responseMessage = {
+                  text:lastMessage.text,
+                  timestamp: new Date().toLocaleString(),
+                  align: 'left',
+                };
 
-                                          //addMessage(responseMessage, "ai")
-                                          //console.log(responseMessage.text, "botMessage", currentChat.id)
-                                          // add to users chat 
-                                          addMessageMongo(responseMessage.text, "botMessage", id)
-                                          
-                                          // add the current user+ai to supabase
-                                          postAiSupabase(responseMessage, id)
-                                          //newSocket.off('disconnect'); // Remove the disconnect event listener after it has been executed once
-                                          
+                //addMessage(responseMessage, "ai")
+                //console.log(responseMessage.text, "botMessage", currentChat.id)
+                // add to users chat 
+                addMessageMongo(responseMessage.text, "botMessage", id)
+                
+                // add the current user+ai to supabase
+                postAiSupabase(responseMessage, id)
+                //newSocket.off('disconnect'); // Remove the disconnect event listener after it has been executed once
+                
 
-                                          return prevMessages; // Return the previous messages without modification
-                                        });
+                return prevMessages; // Return the previous messages without modification
+              });
 
-                                        // finish the message retireval process on the ui
-                                        setIsAiLoading(false)
-                                        console.log('Disconnected by the server');
-                                        break;
+              // finish the message retireval process on the ui
+              setIsAiLoading(false)
+              console.log('Disconnected by the server');
+              break;
           }
   
           parser.feed(decoder.decode(value));
@@ -541,97 +552,6 @@ export default function Home({accessToken}) {
             openNotification('Invalid token, please login again')
             console.log('Disconnected by the server');
         }
-
-
-
-        // //---------------------------------------------------------------- socket start ------------------------------------------------------------
-        // if (!socket) { // Check if the socket is not already connected
-        //   // create a new connection, with token
-        //   const newSocket = io('http://localhost:5000',{
-        //     query:{acctoken:accessToken}
-        //   });
-            
-        //   newSocket.on('error', (data) => {
-
-        //     // add the error to the message list
-        //     setMessageList((prevMessages) => {
-            
-        //       currentAIMessage  = currentAIMessage+ data.data
-        //       const lastString =  prevMessages[prevMessages.length - 1] ;
-        //       const updatedLastString = lastString.text + data.data;
-        //       return [...prevMessages.slice(0, prevMessages.length - 1),
-        //         {...lastString, text:updatedLastString}];
-
-        //     });
-
-        //     // finsish the message processing 
-        //     setIsAiLoading(false)
-        //     openNotification('Invalid token, please login again')
-        //     console.log('Disconnected by the server');
-        //     setSocket(null);
-        //     // shut off the socket
-        //     newSocket.close()
-        //     //newSocket.emit('trigger_disconnect') //way to tell the server to disconnect
-        //     // router.push('/api/auth/logout')
-        //   })
-
-        //   newSocket.on('message', (data) => {
-    
-        //     // add messsage, weird way, hence be careful
-        //     setMessageList((prevMessages) => {
-        //       currentAIMessage  = currentAIMessage+ data.data
-        //       const lastString =  prevMessages[prevMessages.length - 1] ;
-        //       const updatedLastString = lastString.text + data.data;
-        //       return [...prevMessages.slice(0, prevMessages.length - 1),
-        //         {...lastString, text:updatedLastString}];
-        //     });
-
-        //     console.log('message received')
-        //   });
-        
-        //   newSocket.on('disconnect', async () => {
-        //     // on disconnect
-
-        //     // retrieve the last complete message
-        //     setMessageList((prevMessages) => {
-        //       const lastMessage = prevMessages[prevMessages.length - 1];
-        //       //console.log(lastMessage.text); // Print the entire previous message
-              
-        //       // call mongo store function
-        //       responseMessage = {
-        //         text:lastMessage.text,
-        //         timestamp: new Date().toLocaleString(),
-        //         align: 'left',
-        //       };
-
-        //       //addMessage(responseMessage, "ai")
-        //       //console.log(responseMessage.text, "botMessage", currentChat.id)
-        //       // add to users chat 
-        //       addMessageMongo(responseMessage.text, "botMessage", id)
-              
-        //       // add the current user+ai to supabase
-        //       postAiSupabase(responseMessage, id)
-        //       //newSocket.off('disconnect'); // Remove the disconnect event listener after it has been executed once
-        //       newSocket.close()
-
-        //       return prevMessages; // Return the previous messages without modification
-        //     });
-
-        //     // finish the message retireval process on the ui
-        //     setIsAiLoading(false)
-        //     console.log('Disconnected by the server');
-        //     setSocket(null); // Reset the socket state to allow reconnection
-        //   });
-          
-        //   // set the socket connection
-        //   setSocket(newSocket);
-
-        //   //start the socket connection
-        //   newSocket.emit('start', dataPmt, accessToken);
-        //   console.log('Started');
-        // }
-        // //---------------------------------------------------------------- socket end ------------------------------------------------------------
-        // const formattedResponse = formatOpenAiResponse(JSON.stringify(data).slice(1, -1));
       } catch (error) {
         setIsAiLoading(false)
           openNotification(' Failed to receive a response.');
@@ -641,48 +561,10 @@ export default function Home({accessToken}) {
 
 
   const handleStopButtonClick = async () => { 
-    
-    if (socket) {
-      //finish the message retireval on ui
-      setIsAiLoading(false)
-      //console.log(messages)
-
-      //stop the socket from client
-      socket.disconnect(); //way to 
-      console.log('Connection manually closed');
-      setSocket(null); // Reset the socket state after disconnection
-
-      // save mongo
-      // save supabase post ai
-
-      // setMessageList((prevMessages) => {
-      //   const lastMessage = prevMessages[prevMessages.length - 1];
-      //   //console.log(lastMessage.text); // Print the entire previous message
-        
-      //   // call mongo store function
-      //   responseMessage = {
-      //     text:lastMessage.text,
-      //     timestamp: new Date().toLocaleString(),
-      //     align: 'left',
-      //   };
-
-      //   //addMessage(responseMessage, "ai")
-      //   //console.log(responseMessage.text, "botMessage", currentChat.id)
-      //   // add to users chat 
-      //   addMessageMongo(responseMessage.text, "botMessage", id)
-        
-      //   // add the current user+ai to supabase
-      //   postAiSupabase(responseMessage, id)
-      //   newSocket.off('disconnect'); // Remove the disconnect event listener after it has been executed once
-
-      //   return prevMessages; // Return the previous messages without modification
-      // });
-    }
+    setIsAiLoading(false)
   }
 
-  const handleInputChangeTextArea = (e) => {
-      setInputText(e.target.value);
-  };
+  
 
   const handleBackButtonClick = () => {
       router.push('/api/auth/logout');
@@ -692,7 +574,7 @@ export default function Home({accessToken}) {
       setIsAccountModalOpen(true)
   }
 
-  const isButtonDisabled = inputText.trim() === '' || docArray.length === 0 || typeArray===0 || isAiLoading
+  const isButtonDisabled = inputText.trim() === '' ||  isAiLoading
 
   // function to handle chat list and its selection
   const handleChatHistoryClick = async (chatId) => {
@@ -834,7 +716,9 @@ export default function Home({accessToken}) {
         const documents = await response.json();
         if (documents.message=='Empty List'){
           // empty list returned
-          setIsUploadOpen(true) 
+          fetchChatMessages(user.sub);
+          //setIsUploadOpen(true) 
+          setFetchingDocs(false)
           return
         }else{
           //not empty list returned
@@ -843,18 +727,18 @@ export default function Home({accessToken}) {
           setTypeArray(names);
   
           
-          const lastDocIndex = localStorage.getItem('lastDocIndex');
-          if (lastDocIndex && documents[lastDocIndex]) {
+          // const lastDocIndex = localStorage.getItem('lastDocIndex');
+          // if (lastDocIndex && documents[lastDocIndex]) {
             // use local storage
-            setCurrentDocuIndex(parseInt(lastDocIndex, 10));
-            const currentDocument = documents[lastDocIndex];
-            fetchChatMessages(user.sub, currentDocument.docuId);
-          } else{
-            // not empty list returned, but no localstorage
-            setCurrentDocuIndex(0)
-            const currentDocument = documents[0];
-            fetchChatMessages(user.sub, currentDocument.docuId);
-          }
+           // setCurrentDocuIndex(parseInt(lastDocIndex, 10));
+           // const currentDocument = documents[lastDocIndex];
+            fetchChatMessages(user.sub);
+          // } else{
+          //   // not empty list returned, but no localstorage
+          //   setCurrentDocuIndex(0)
+          //   const currentDocument = documents[0];
+          //   fetchChatMessages(user.sub, currentDocument.docuId);
+          // }
   
           setFetchingDocs(false)
         }
@@ -867,11 +751,12 @@ export default function Home({accessToken}) {
       }
       setFetchingDocs(false)
   };
-         
+  
   useEffect(() => {
     // Step 1: Load User Documents, on page refresh
     if (user?.sub) {
       fetchUserDocuments();
+      setSelectedDoc([])
     }
   }, [user]);
 
@@ -945,7 +830,7 @@ export default function Home({accessToken}) {
   const fetchChatMessages = async (userId, pdfId) => {
     setChatArray([])
       try {
-        const response = await fetch(`/api/chats?userID=${customEncodeURI(userId)}&document=${customEncodeURI(pdfId)}`, {
+        const response = await fetch(`/api/chats?userID=${customEncodeURI(userId)}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}` }
@@ -1016,7 +901,7 @@ export default function Home({accessToken}) {
           openNotification('Resource could not be deleted.')
           console.error('Fetch error:', error.message);
         }
-      localStorage.setItem('lastDocIndex', 0)
+      //localStorage.setItem('lastDocIndex', 0)
       //remove from typearray, and docarray
       refreshDocuments();
       if (deleteIndex !== -1) {
@@ -1024,7 +909,7 @@ export default function Home({accessToken}) {
           docArray.splice(deleteIndex,1)
         }
       setMessageList([])
-      fetchChatMessages(user?.sub, docArray[0].docuId)
+      fetchChatMessages(user?.sub)
 
       setCurrentChat({ index: null, id: null })      
       
@@ -1039,6 +924,15 @@ export default function Home({accessToken}) {
       setShowDeleteConfirm(false);
       setItemToDelete(null);
   }
+  const handleInputChangeTextArea = (event) => {
+    setInputText(event.target.value);
+
+    // below handles increasing text are
+    const inputText = event.target.value;
+    const lines = inputText.split(/\r*\n/);
+    const numberOfRows = Math.min(Math.max(lines.length, 2), 6); // Ensure the number of rows is between 2 and 6
+    setTextAreaRows(numberOfRows);
+  };
 
   const [textAreaRows, setTextAreaRows] = useState(2);
 
@@ -1058,116 +952,175 @@ export default function Home({accessToken}) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const handleCheckboxChange = (docId) => {
+    const docIndex = selectedDoc.indexOf(docArray[docId]);
 
-  if (user){
+    if (docIndex === -1) {
+      // If docId is not found in the selectedDoc array, add it
+      setSelectedDoc([...selectedDoc, docArray[docId]]);
+    } else {
+      // If docId is found in the selectedDoc array, remove it
+      const updatedSelectedDoc = [...selectedDoc];
+      updatedSelectedDoc.splice(docIndex, 1);
+      setSelectedDoc(updatedSelectedDoc);
+    }   
+  }
+  
+if (user){
   return (
     <>
       <Head>
-          <title>JotDownAI</title>
-          <meta name="description" content="JotDown - An AI document Assitant." />
+          <title>Resource-labs</title>
+          <meta name="description" content="Resource-labs - An AI resource Assitant." />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <div style={{ display: 'flex', height: '100vh', backgroundColor: '#21262d'}}>
-        {isLeftColumnVisible && (
-          <div style={{ 
-              width: '25vh', // Use viewport width to keep width responsive
-              display: 'flex', 
-              flexDirection: 'column', 
-              backgroundColor: '#36373A', 
-              padding: '10px',
-              height: '100vh', // Subtract padding from the viewport height
-              boxSizing: 'border-box', // Include padding and border in the height calculation
-              justifyContent: 'space-between',
-              fontSize:'0.8em'
-          }}>
-              <div style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  justifyContent: 'center',
-                  height: '100%',
-                
-                  overflow: 'hidden' // Prevent horizontal overflow
+      {isLeftColumnVisible && (
+      <div style={{ 
+          width: '30vh', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          backgroundColor: '#36373A', 
+          padding: '10px',
+          height: '100vh', 
+          boxSizing: 'border-box', 
+          justifyContent: 'space-between',
+          fontSize:'0.8em'
+      }}>
+      <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          justifyContent: 'center',
+          height: '100%',
+          overflow: 'hidden' 
+      }}>
+          <PlusCircleOutlined 
+              style={{ display:'flex', flexDirection:'column', justifyContent:'center', fontSize:'1.5em'}} 
+              onClick={onNewChat}
+          />
+          {/* First List */}
+          <ul style={{ 
+                  listStyle: 'none', 
+                  padding: '0 1px',
+                  overflowY: 'auto', 
+                  height: 'calc(50% - 30px)', // Adjusted height to accommodate two lists
+                  marginTop: '10px', 
+                  overflowX: 'hidden',
               }}>
-                      <PlusCircleOutlined 
-                          style={{ display:'flex', flexDirection:'column', justifyContent:'center', fontSize:'1.5em'}} 
-
-                          onClick={onNewChat}
-                      />
-                  <ul style={{ 
-                          listStyle: 'none', 
-                          padding: '0 1px',
-                          overflowY: 'auto', 
-                          height: 'calc(100% - 60px)', 
-                          marginTop: '10px', 
-                          overflowX: 'hidden',
+                {fetchingDocs ? <ChatLoading/> : <>
+                {Array.isArray(chatArray) && chatArray.map((chat, index) => (
+                  <li key={chat._id} style={{ margin: '5px 0' }}>
+                      <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          backgroundColor: '#333',
+                          borderRadius: '5px',
+                          padding: '2px 10px',
                       }}>
-                        { fetchingDocs ? <ChatLoading/>: <>
-                        {Array.isArray(chatArray) && chatArray.map((chat, index) => (
-                          <li key={chat._id} style={{ margin: '5px 0' }}>
-                              <div style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  backgroundColor: '#333',
-                                  borderRadius: '5px',
+                          <a 
+                              style={{ 
+                                  flex: 1, 
+                                  cursor: 'pointer', 
+                                  color: 'white',
+                                  textDecoration: 'none',
                                   padding: '2px 10px',
-                              }}>
-                                  <a 
-                                      style={{ 
-                                          flex: 1, // makes the link expand to take available space
-                                          cursor: 'pointer', 
-                                          color: 'white',
-                                          textDecoration: 'none',
-                                          padding: '2px 10px',
-                                          borderRadius: '5px',
-                                          transition: 'background-color 0.3s',
-                                      }} 
-                                      onMouseEnter={(e) => e.target.style.backgroundColor = '#21262d'}
-                                      onMouseLeave={(e) => e.target.style.backgroundColor = '#333'}
-                                      onClick={() => handleChatHistoryClick(chat._id)}
-                                      title={chat.chatName} // Shows the full name on hover
-                                  >
-                                      {chat.chatName.substring(0, 14)}
-                                  </a>
-                                  <div 
-                                      onClick={() => deletchat(chat._id)}
-                                      style={{
-                                          padding: '1px 2px',
-                                          cursor: 'pointer',
-                                          transition: 'background-color 0.3s',
-                                      }}
-                                      onMouseEnter={(e) => e.target.style.backgroundColor = '#21262d'}
-                                      onMouseLeave={(e) => e.target.style.backgroundColor = '#333'}
-                                  >
-                                      <DeleteOutlined style={{ color: 'white' }}/>
-                                  </div>
-                              </div>
-                          </li>
-                        ))}
-                        </>
-                      }
-                  </ul>
-              </div>
-              
-              <h2  style={{alignSelf: 'center', marginBottom:'10px'}}><a className={styles.hoverPro} onClick={()=>setIsUpgradeOpen(true)}>  Try Pro </a></h2>
+                                  borderRadius: '5px',
+                                  transition: 'background-color 0.3s',
+                              }} 
+                              onMouseEnter={(e) => e.target.style.backgroundColor = '#21262d'}
+                              onMouseLeave={(e) => e.target.style.backgroundColor = '#333'}
+                              onClick={() => handleChatHistoryClick(chat._id)}
+                              title={chat.chatName}
+                          >
+                              {chat.chatName.substring(0, 14)}
+                          </a>
+                          <div 
+                              onClick={() => deletchat(chat._id)}
+                              style={{
+                                  padding: '1px 2px',
+                                  cursor: 'pointer',
+                                  transition: 'background-color 0.3s',
+                              }}
+                              onMouseEnter={(e) => e.target.style.backgroundColor = '#21262d'}
+                              onMouseLeave={(e) => e.target.style.backgroundColor = '#333'}
+                          >
+                              <DeleteOutlined style={{ color: 'white' }}/>
+                          </div>
+                      </div>
+                  </li>
+                ))}
+                </>
+              }
+          </ul>
+          <hr style={{ border: '1px solid white' }} />
+          {/* Second List */}
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom:'10px', marginTop:'2vh' }}>
+              {docArray.length==0 ? <span>Upload resources</span>:<span>Select resources for AI to consider</span>}
             
-          {isLeftColumnVisible && (
-            
-          <DoubleLeftOutlined style={{alignSelf: 'center', marginBottom: '15px'}} onClick={handleChatBackButtonClick}/> 
-         )}
+
+            <SettingOutlined style={{ marginLeft: '10px' }} onClick={showModal}/>
+          </div>
+          <ul style={{ 
+                  listStyle: 'none', 
+                  padding: '0 1px',
+                  overflowY: 'auto', 
+                  height: 'calc(50% - 30px)', // Adjusted height to accommodate two lists
+                  overflowX: 'hidden',
+              }}>
+              {fetchingDocs ? <ChatLoading/> : <>
+                {Array.isArray(filteredData) && filteredData.map((chat, index) => (
+                  <li key={index} style={{ margin: '5px 0' }}>
+                      <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          backgroundColor: '#333',
+                          borderRadius: '5px',
+                          padding: '2px 10px',
+                      }}>
+                        <Checkbox style={{ marginRight: '1px'}} onChange={() => handleCheckboxChange(index)}></Checkbox>
+                          <a 
+                              style={{ 
+                                  flex: 1, 
+                                  cursor: 'pointer', 
+                                  color: 'white',
+                                  textDecoration: 'none',
+                                  padding: '2px 10px',
+                                  borderRadius: '5px',
+                                  transition: 'background-color 0.3s',
+                              }} 
+                              // onMouseEnter={(e) => e.target.style.backgroundColor = '#21262d'}
+                              // onMouseLeave={(e) => e.target.style.backgroundColor = '#333'}
+                              //onClick={() => handleDocSelection(index)}
+                              title={filteredData[index]}
+                          >
+                              {filteredData[index].substring(0, 14)}
+                          </a>
+    
+                          
+                      </div>
+                  </li>
+                ))}
+                </>
+              }
+          </ul>
+      </div>      
+      {isLeftColumnVisible && (  
+            <DoubleLeftOutlined style={{alignSelf: 'center', marginBottom: '5px'}} onClick={handleChatBackButtonClick}/> 
+           )}
         </div>)}
 
         {/* Main Content */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column',  overflow: 'hidden' }}>
             <div style={{ maxHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#21262d', padding: '10px', overflow: 'auto' }}>
               <div style={{marginTop:'10px', display: 'flex', alignItems: 'center', width: '100%', height:'7.5vh' }}>
-                  <h3 style={{ flex: '1', marginRight: '15px', fontSize:'1.2em', color:'#fa7970'}}>JotDownAI<Tooltip placement="bottom" title={text}>
+                  <h3 style={{ flex: '1', marginRight: '15px', fontSize:'1.2em', color:'#fa7970'}}>Resource-labs<Tooltip placement="bottom" title={text}>
                           <InfoCircleOutlined style={{marginLeft:'15px'}} onClick={()=>setIsAboutOpen(true)}/>
                       </Tooltip>
                   </h3>
-                  <Tooltip placement="bottom" title={newUpload}><CloudUploadOutlined onClick={()=>setIsUploadOpen(true)} style={{marginLeft:'10px', fontSize:'25px'}}/></Tooltip>
-                  <Button style={{ backgroundColor: '#fa7970', marginLeft:'15px',marginRight:'15px', border:'black' }} onClick={showModal}>Manage Resource</Button>
+                  
+                  <Tooltip placement="bottom" title={newUpload}><Button onClick={()=>setIsUploadOpen(true)} style={{ backgroundColor: '#fa7970',marginLeft:'10px', border:'black'}}>New Upload</Button></Tooltip>
                   <Menu onClick={onClick}  mode="horizontal" items={accounts} style={{backgroundColor:'transparent', color:'white', marginRight:'15px'}} selectedKeys={[null]}/>
               </div>
 
@@ -1191,12 +1144,7 @@ export default function Home({accessToken}) {
                     marginBottom: '10px', // Space between icons and message area
                     paddingLeft: '10px' // Padding to the left of the icons
                   }}>
-                    <Tooltip placement="bottom" title={Vanilla}>
-                    <Switch
-                      onClick={vanillaMode}
-                      style={{marginRight:'20px'}}
-                    />
-                    </Tooltip>
+
                     <Tooltip placement="bottom" title={search}>
                     <SearchOutlined
                       onClick={toggleSearch}
@@ -1217,18 +1165,13 @@ export default function Home({accessToken}) {
                       }}
                     />
                   </Tooltip>
-                  <Tooltip placement="bottom" title={dalle}>
-                  <PictureOutlined style={{
-                        marginRight: '35px',
-                        color: isCalculatorActive ? 'red' : 'inherit', // Change color when active
-                        cursor: 'pointer'
-                      }} />
-                  </Tooltip>
                   <Tooltip placement="bottom" title={rocket}>
-                  <RocketOutlined style={{
+                  <RocketOutlined 
+                  onClick={assistantsMode}
+                  style={{
                         marginRight: '35px',
-                        color: isCalculatorActive ? 'red' : 'inherit', // Change color when active
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        color: isAssitantsMode ?'red' : 'inherit',
                       }} />
                   </Tooltip>
 
@@ -1377,25 +1320,38 @@ export default function Home({accessToken}) {
                       `}</style>
                             <div style={{ width: '10%' }} className="icon">
                               
-                            {!isLeftColumnVisible && (
-                              <Tooltip placement="right" title={openChat}>
-                            <DoubleRightOutlined onClick={handleChatBackButtonClick} /></Tooltip>
-                            )}
-                            </div>
-                            <div style={{ 
-                                width: '90%', 
-                                display: 'flex', 
-                                justifyContent: 'center', // Center the content in this div
-                               marginLeft:'-17.5px'// Adjust if needed to fine-tune the position of "hello"
-                            }}>
-                                <h2>
-                                  Selected Resource - 
-                                  <span>
-                                    {typeArray.length > 0 && typeArray[currentDocuIndex] ? ' '+typeArray[currentDocuIndex]+' ' : ' Upload any document '} 
-                                  </span> 
-                                </h2>
+                              {!isLeftColumnVisible && (
+                                <Tooltip placement="right" title={openChat}>
+                              <DoubleRightOutlined onClick={handleChatBackButtonClick} /></Tooltip>
+                              )}
+                              </div>
+                              <div style={{ 
+                                  width: '90%', 
+                                  display: 'flex', 
+                                  justifyContent: 'center', // Center the content in this div
                                 
-                                {isAiLoading ? <ChatLoading/> : <></>}
+                              }}>
+                                  <footer style={{
+                                      width: '100%',
+                                      color: 'white', // Example background color
+                                      textAlign: 'center',
+                                      borderColor:'white'
+                                    }}>
+                                      <select
+                                        style={{
+                                          backgroundColor:'#21262d',
+                                          borderColor:'white'
+                                        }}
+                                        defaultValue="option1"
+                                        onChange={(e) => console.log(e.target.value)} // Handle change
+                                        size="1" // Default size, it will expand to show all options when clicked
+                                      >
+                                        <option value="option1" >gpt-3.5-turbo</option>
+                                        <option value="option2" disabled>mistral-8X7B⭐Pro</option>
+                                        <option value="option3" disabled>CodeLLama 70B⭐Pro</option>
+                                      </select>
+                                  </footer>
+                                {isAiLoading ? <ChatLoading/> :<></>}
                             </div>
                         </div>
                       </div>
@@ -1447,7 +1403,7 @@ export default function Home({accessToken}) {
 
         <Modal
           open={isModalVisible}
-          title="Choose a Resource to begin the conversation"
+          title="Manage processed resources"
           onCancel={handleCancel}
           footer={[
             <Button key="back-button" onClick={handleCancel} type="dashed" style={{ backgroundColor: "#fa7970" }}>
@@ -1469,7 +1425,7 @@ export default function Home({accessToken}) {
             dataSource={filteredData}
             renderItem={item => (
               <List.Item
-                style={{ cursor: 'pointer', backgroundColor: item === typeArray[currentDocuIndex] ? '#f0f0f0' : '' }}
+                style={{ cursor: 'pointer'}}
                 onClick={() => handleSelect(item)}
               >
                 {item}
@@ -1530,7 +1486,7 @@ export const getServerSideProps = async (context) => {
         // Extract the data from the response
         const data = response.data;
         const accessToken = data.access_token
-
+        // console.log(accessToken)
         // Pass data to the page via props
         return { props: { accessToken } };
     } catch (error) {
@@ -1547,6 +1503,7 @@ export const getServerSideProps = async (context) => {
 }
 
 //chat details
+//<Button style={{ backgroundColor: '#fa7970', marginLeft:'15px',marginRight:'15px', border:'black' }} onClick={showModal}>Manage</Button>
 /**
  Chat - 
                           <span style={{ color: '#2dba4e' }}> 
@@ -1554,4 +1511,16 @@ export const getServerSideProps = async (context) => {
                                   ? ' ' + chatArray[currentChat.index].chatName.slice(0, 30) + ' ' 
                                   : ' Start asking '}
                           </span>              |
+ */
+
+
+/**
+ * <h2  style={{alignSelf: 'center'}}><a className={styles.hoverPro} onClick={()=>setIsUpgradeOpen(true)}>  Try Pro </a></h2>
+ the code for selected doc 
+ <h2>
+                                  Selected Resource - 
+                                  <span>
+                                    {typeArray.length > 0 && typeArray[currentDocuIndex] ? ' '+typeArray[currentDocuIndex]+' ' : ' Upload any document '} 
+                                  </span> 
+                                </h2>
  */

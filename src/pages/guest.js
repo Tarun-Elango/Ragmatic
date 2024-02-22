@@ -14,7 +14,7 @@ export default function Guest () {
     router.push('/api/auth/login')
   };
 
-  const text = ".pdf";
+  const text = "pdf, word, text file, text input";
   const [currentText, setCurrentText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const delay = 50
@@ -36,8 +36,8 @@ export default function Guest () {
 return(<>
 
 <Head>
-    <title>JotDownAI</title>
-    <meta name="description" content="JotDown - An AI document Assitant." />
+    <title>Resource-labs</title>
+    <meta name="description" content="Resource-labs - An AI document Assitant." />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, "/>
     <link rel="icon" href="/favicon.ico" />
 </Head>
@@ -65,7 +65,7 @@ return(<>
       />
     </a>
 
-    <h1 className={styles.h1Bold} >JotDownAI</h1>
+    <h1 className={styles.h1Bold} >Resource-labs</h1>
     <Tooltip placement="bottom" title={about}>
       <InfoCircleOutlined style={{ fontSize: '24px', paddingBottom:'5vh'}} onClick={()=>setIsAboutGuestOpen(true)}/>
     </Tooltip>
@@ -82,7 +82,7 @@ return(<>
         Includes Vanilla AI Chatbot
       </Tooltip>
     </p>
-    <p className="mb-6">Supported file types: <span className={styles.blinkingCursor}><>{currentText}</></span></p>
+    <p className="mb-6">Supported file types: <span className={styles.blinkingCursor}><>pdf, word, text file, text input</></span></p>
 
     <div className={styles.buttonBox}>
       <button className={styles.loginButton} onClick={handleLogin}>
@@ -92,7 +92,7 @@ return(<>
   </main>
   <footer className={styles.foot}>
   <div className={styles.shimmercontainer}>
-  <span className={styles.shimmertext}>Free to use</span> While in Beta version 
+  <span className={styles.shimmertext}>Free to use</span> while in Beta version 
   
 </div>
 

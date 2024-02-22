@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-import { pipeline } from '@xenova/transformers'
+// import { pipeline } from '@xenova/transformers'
 import { middleware } from "../../middleware/middleware";
 import axios from 'axios';
 // import { env } from '@xenova/transformers'
@@ -72,27 +72,62 @@ export default async function handler(req, res) {
       res.status(400).json({ success: false, message: result.message });
     } else {
         const { chatId, userQuery, combinedMessage } = req.body;
-        const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small');
+        // const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small');
         
             // Check if the request method is POST
             if (req.method !== 'POST') {
             return res.status(405).json({ message: 'Only POST requests are allowed' });
             }
-        
+        //////////////////////////get client accesstoken from auth0
+    const postData = `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"${process.env.AUTH0_AUD}","grant_type":"client_credentials"}`
+    const headers = {
+        'Content-Type': 'application/json',
+    }
+
+    const response = await axios.post(process.env.AUTH0_TOKEN, postData, { headers });
+
+    // Extract the data from the response
+    const data = response.data;
+    const accessToken = data.access_token // this has the accesstoken
             // Handle request with just a chat ID
             if (!combinedMessage) {
                 let startTime = process.hrtime();
-                // retrive most relevant vector embedding
-            
                 // get the embdedding of userquery
+                const requestBody ={
+                    "sentences":[userQuery]
+                }
+                let embeddingUserQuery=[]
+                try {
+                    // Make a POST request to the server endpoint
+                    const response = await fetch(`${process.env.BASEURL}/api/ebd`, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                      },
+                      body: JSON.stringify(requestBody)
+                    });
+                  
+                    // Check if the request was successful
+                    if (!response.ok) {
+                      throw new Error(`Error: ${response.statusText}`);
+                    }
+                  
+                    // Parse the JSON response
+                    const dataemb = await response.json();
+                    embeddingUserQuery = dataemb.embeddings[0].embedding
+                  
+                  } catch (error) {
+                    console.error('Failed to fetch embeddings:', error);
+                    return res.status(400).json({ error: 'Open ai embedding error', message:'Open ai embedding error' });
+                  }
+
+                // const embeddingResultUser = await generateEmbedding(userQuery, {
+                //     pooling: 'mean',
+                //     normalize: true,
+                // });
+                // const embeddingUserQuery = Array.from(embeddingResultUser.data);
                 
-                const embeddingResultUser = await generateEmbedding(userQuery, {
-                    pooling: 'mean',
-                    normalize: true,
-                });
-                const embeddingUserQuery = Array.from(embeddingResultUser.data);
-
-
                 // get all chat messages by current chat id
                 const rows = await fetchRowsByChatId(chatId);
 
@@ -139,14 +174,43 @@ export default async function handler(req, res) {
             // get the embeddings of the combined message
             //get the combined message embeddings
 
-            const embeddingResult = await generateEmbedding(combinedMessage, {
-                pooling: 'mean',
-                normalize: true,
-            });
-            const embedding = Array.from(embeddingResult.data);
+            // const embeddingResult = await generateEmbedding(combinedMessage, {
+            //     pooling: 'mean',
+            //     normalize: true,
+            // });
+            // const embedding = Array.from(embeddingResult.data);
+
+            const requestBody ={
+                "sentences":[combinedMessage]
+            }
+            let embeddingCombMess=[]
+            try {
+                // Make a POST request to the server endpoint
+                const response = await fetch(`${process.env.BASEURL}/api/ebd`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                  },
+                  body: JSON.stringify(requestBody)
+                });
+              
+                // Check if the request was successful
+                if (!response.ok) {
+                  throw new Error(`Error: ${response.statusText}`);
+                }
+              
+                // Parse the JSON response
+                const dataemb = await response.json();
+                embeddingCombMess = dataemb.embeddings[0].embedding
+              
+              } catch (error) {
+                console.error('Failed to fetch embeddings:', error);
+                return res.status(400).json({ error: 'Open ai embedding error', message:'Open ai embedding error' });
+              }
 
             // add to db
-            const response =  insertVectorEmbedding(chatId, combinedMessage, embedding)
+            const response =  insertVectorEmbedding(chatId, combinedMessage, embeddingCombMess)
             .then(data => console.log('Inserted data:', data))
             .catch(err => console.error(err));
             return res.status(200).json({ message: `Stored the most recent user+ai message to vector db using combined message ${response}` });

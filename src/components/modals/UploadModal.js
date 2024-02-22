@@ -1,12 +1,26 @@
-import { Modal, Input, Space, Button, notification,Spin  } from 'antd'
-import {  WarningOutlined } from '@ant-design/icons';
+import { Modal, Input, Space, Button, notification,Typography,Collapse, message, Upload  } from 'antd'
 
+import { UpOutlined, DownOutlined, WarningOutlined, InboxOutlined } from '@ant-design/icons';
 import { React } from 'react'
 import { useState, useRef, useEffect } from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import OpaqueLoading from '../OpaqueLoading';
 
 function UploadModal(props){
+
+  const [inputTextUpload, setInputTextUpload] = useState('');
+  const [inputTextUploadHeader, setinputTextUploadHeader] = useState('');
+  const [inputURL, setinputURL] = useState('');
+  const [inputURLHeader, setinputURLHeader] = useState('');
+  const { TextArea } = Input;
+  const { Title } = Typography;
+  const { Panel } = Collapse;
+
+  // Custom expand icon for the Collapse component
+  const customExpandIcon = (panelProps) => {
+    return panelProps.isActive ? <UpOutlined /> : <DownOutlined />;
+  };
+  
   const openNotification = (message, description) => {
     notification.open({
       message: <span style={{ color: 'red' }}><WarningOutlined />{message}</span>,
@@ -23,6 +37,7 @@ function UploadModal(props){
   const fileInputRef = useRef(null);
   const [uploadResponse, setUploadResponse] = useState(null)
   const [isManualLoading, setManualLoading] = useState(false);
+  const [buttonType, setButtonType]= useState('')
 
   const onRemoveFile = () => {
     setFile(null);
@@ -34,14 +49,21 @@ function UploadModal(props){
   };
 
   const handleCancel=() => {
+    if (buttonType===''){
+      // if no button has been selected close modal
       setVisible(false)
       props.hideUploadModal()
+    }
+      else{
+        // if button has been selected, clear button type, thereby going to last page (thats how html is set empty const shows button)
+        setButtonType('')
+      }
   }
 
   const handleOk = async (e) => {
     e.preventDefault();
     if (!file) return;
-
+    
     //TODO filter file type
     setPdfText('');
     setFile(null);
@@ -78,55 +100,150 @@ function UploadModal(props){
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+
     };
+
+    const manualText=async ()=>{
+      // console.log(inputTextUploadHeader)
+      // console.log(inputTextUpload)
+      //TODO filter file type
+      setPdfText('');
+      setFile(null);
+      setManualLoading(true)
+          
+      try {
+        // set the loading symbol
+        // process the pdf and send to pinecone, namespace (i.e pinecone docuname) = user id + pdf name
+        const inputtext = {
+          headerText:inputTextUploadHeader,
+          bodyText:inputTextUpload,
+          userId:user.sub
+        }
+        // call this endpoint to store the file after upload
+        const response = await fetch('/api/input', {
+          method: 'POST',
+          headers: {
+                'Authorization': `Bearer ${props.acToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(inputtext)
+        });
+        // Parse the response body as JSON
+        const data = await response.json();
+        setUploadResponse(data.message)
+        console.log(data.message);
+        props.onUploadSuccess();
+        setinputTextUploadHeader('')
+        setInputTextUpload('')
+
+      } catch (e) {
+        openNotification('failed to upload Text')
+        console.error(e);
+      }
+
+      setManualLoading(false)
+      setPdfText("read");
+      
+    }
+    const url=()=>{
+      console.log(inputURLHeader)
+      console.log(inputURL )
+    }
 
   return (
     
-      <Modal
-        open={visible}
-        title='Upload a New Resource.'
-        onCancel={handleCancel}
-        footer={[
-          <div key="footer-content" style={{ display: 'flex', alignItems: 'center' }}>
-            <h4 style={{ marginRight: 'auto' }}>Allowed format: .pdf</h4>
-            <Button key="back-button" onClick={handleCancel} type="dashed">
-                Back
-            </Button>
-        </div> 
-        ]}
-      >
-        <OpaqueLoading isShowing={isManualLoading} />
+    <Modal
+    open={visible}
+    title={<span style={{ color: '#5C6B77' }}>Upload a New Resource.</span>}
+    onCancel={handleCancel}
+    footer={[
+      <div key="footer-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+        <Button key="back-button" onClick={handleCancel} style={{ borderColor: '#B0BEC5', color: '#5C6B77' }}>
+          Back
+        </Button>
+      </div> 
+    ]}
+    style={{ borderRadius: '10px' }}
+    
+  >
+    <OpaqueLoading isShowing={isManualLoading} />
+    <div>
+    <Collapse expandIcon={customExpandIcon} className="site-collapse-custom-collapse" >
+      <Panel header={<Title level={4} style={{ color: '	#a3573a', marginBottom: 0 }}>PDF, Word docx, Text file</Title>} key="2" className="site-collapse-custom-panel">
+        <Space direction="vertical" style={{ width: '100%' }}>
+        <form onSubmit={handleOk} style={{ marginTop: '24px' }}> 
+        <input
+          type="file"
+          name="file"
+          onChange={(e) => setFile(e.target.files?.[0])}
+          ref={fileInputRef}
+          style={{ marginTop: '0px' }}
+        />
+        <input type="submit" value="Process" style={{ border: '1px solid #CBD5E0', padding: '6px 12px', borderRadius: '8px', backgroundColor: '	#2dba4e', color: '#2D3748', cursor: 'pointer' }}/>
+      </form>
+        </Space>
+      </Panel>
+    </Collapse>
+
+    <Collapse expandIcon={customExpandIcon} className="site-collapse-custom-collapse" style={{ marginTop: '24px' }}>
+      <Panel header={<Title level={4} style={{ color: '	#475c6c', marginBottom: 0 }}>Manually Input Text</Title>} key="1" className="site-collapse-custom-panel">
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <Input placeholder="Give it a name" style={{ borderColor: '#CBD5E0', color: '#2D3748' }} value={inputTextUploadHeader} onChange={(e)=>setinputTextUploadHeader(e.target.value)}/>
+          <TextArea
+            value={inputTextUpload}
+            onChange={(e) => setInputTextUpload(e.target.value)}
+            placeholder="Paste your text here"
+            autoSize={{ minRows: 4, maxRows: 6 }}
+            style={{ borderColor: '#CBD5E0', color: '#2D3748' }}
+          />
+          <Button style={{ backgroundColor: '	#2dba4e'}} onClick={manualText}  disabled={!inputTextUploadHeader || !inputTextUpload}>Process</Button>
+        </Space>
+      </Panel>
+    </Collapse>
+
+    {/* Add a URL or YouTube Video Section */}
+    <Collapse expandIcon={customExpandIcon} className="site-collapse-custom-collapse" style={{ marginTop: '24px' }}>
+      <Panel header={<Title level={4} style={{ color: '#eb2d3a', marginBottom: 0 }}>Website URL or YouTube Video</Title>} key="2" className="site-collapse-custom-panel">
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <Input placeholder="Give it a name" style={{ borderColor: '#CBD5E0', color: '#2D3748' }} value={inputURLHeader} onChange={(e)=>setinputURLHeader(e.target.value)}/>
+          <Input placeholder="The url" style={{ borderColor: '#CBD5E0', color: '#2D3748' }} value={inputURL} onChange={(e)=>setinputURL(e.target.value)}/>
+          <Button style={{ backgroundColor: '	#2dba4e'}} onClick={url} disabled={!inputURLHeader || !inputURL}>Process</Button>
+        </Space>
+      </Panel>
+    </Collapse>
+    <Collapse expandIcon={customExpandIcon} className="site-collapse-custom-collapse" style={{ marginTop: '24px' }}>
+      <Panel header={<Title level={4} style={{ color: '#7d3865', marginBottom: 0 }}>Images</Title>} key="2" className="site-collapse-custom-panel">
+        <Space direction="vertical" style={{ width: '100%' }}>
+        </Space>
+      </Panel>
+    </Collapse>
+    <Collapse expandIcon={customExpandIcon} className="site-collapse-custom-collapse" style={{ marginTop: '24px' }}>
+      <Panel header={<Title level={4} style={{ color: '#032904', marginBottom: 0 }}>Excel</Title>} key="2" className="site-collapse-custom-panel">
+        <Space direction="vertical" style={{ width: '100%' }}>
+        </Space>
+      </Panel>
+    </Collapse>
+
+      {file && !isManualLoading && (
         <div>
-          <form onSubmit={handleOk} style={{marginTop:'2vh'}}> 
-            <input
-              type="file"
-              name="file"
-              onChange={(e) => setFile(e.target.files?.[0])}
-              ref={fileInputRef}
-            />
-            <input type="submit" value="Upload" style={{border:'2px solid #000', padding:'6px', borderRadius:'8px', backgroundColor:'#7ce38b'}}/>
-          </form>
-
-          {file && !isManualLoading &&(
-            <div>
-              <Button onClick={onRemoveFile} style={{marginTop:'2vh', backgroundColor:'#fa7970'}}>Remove File</Button>
-            </div>
-          )}
-
-          {isManualLoading && (
-            <div>
-              <h2>Hold up, we are processing your document.</h2>
-            </div>
-
-          )}
-
-          {pdfText && (
-            <div>
-              <h2>{uploadResponse}</h2>
-            </div>
-          )}
+          <Button onClick={onRemoveFile} style={{ marginTop: '24px', backgroundColor: '#FF5A5F', color: '#2D3748' }}>Remove File</Button>
         </div>
-      </Modal>
+      )}
+  
+      {isManualLoading && (
+        <div style={{ marginTop: '24px' }}>
+          <h2 style={{ color: '#718096' }}>Hold up, we are processing your document.</h2>
+        </div>
+      )}
+  
+      {pdfText && (
+        <div style={{ marginTop: '24px' }}>
+          <h2 style={{ color: '#FC642D' }}>{uploadResponse}</h2>
+        </div>
+      )}
+    </div>  
+  </Modal>
+  
   )}
 
 export default UploadModal;
