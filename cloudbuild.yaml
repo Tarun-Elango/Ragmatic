@@ -1,0 +1,4 @@
+# To disable logging
+options:
+  logging: CLOUD_LOGGING_ONLY
+  serviceAccount: projects/jotdown-415202/serviceAccounts/281261223603@cloudbuild.gserviceaccount.com
