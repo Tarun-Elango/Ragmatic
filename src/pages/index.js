@@ -658,7 +658,7 @@ export default function Home({accessToken}) {
       {
           label: '',
           key: 'SubMenu',
-          icon: <UserOutlined />,
+          icon: <UserOutlined style={{color:'white'}}/>,
           children: [
 
                 {
@@ -970,8 +970,8 @@ if (user){
   return (
     <>
       <Head>
-          <title>Resource-labs</title>
-          <meta name="description" content="Resource-labs - An AI resource Assitant." />
+          <title>Resource-Mind: AI for your Resource</title>
+          <meta name="description" content="Resource-Mind: AI Assitant for your resources" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -1010,7 +1010,7 @@ if (user){
                   overflowX: 'hidden',
               }}>
                 {fetchingDocs ? <ChatLoading/> : <>
-                {Array.isArray(chatArray) && chatArray.map((chat, index) => (
+                {Array.isArray(chatArray) && chatArray.slice().reverse().map((chat, index) => (
                   <li key={chat._id} style={{ margin: '5px 0' }}>
                       <div style={{
                           display: 'flex',
@@ -1115,7 +1115,7 @@ if (user){
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column',  overflow: 'hidden' }}>
             <div style={{ maxHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#21262d', padding: '10px', overflow: 'auto' }}>
               <div style={{marginTop:'10px', display: 'flex', alignItems: 'center', width: '100%', height:'7.5vh' }}>
-                  <h3 style={{ flex: '1', marginRight: '15px', fontSize:'1.2em', color:'#fa7970'}}>Resource-labs<Tooltip placement="bottom" title={text}>
+                  <h3 style={{ flex: '1', marginRight: '15px', fontSize:'1.2em', color:'#fa7970'}}>Resource-Mind<Tooltip placement="bottom" title={text}>
                           <InfoCircleOutlined style={{marginLeft:'15px'}} onClick={()=>setIsAboutOpen(true)}/>
                       </Tooltip>
                   </h3>
@@ -1165,15 +1165,7 @@ if (user){
                       }}
                     />
                   </Tooltip>
-                  <Tooltip placement="bottom" title={rocket}>
-                  <RocketOutlined 
-                  onClick={assistantsMode}
-                  style={{
-                        marginRight: '35px',
-                        cursor: 'pointer',
-                        color: isAssitantsMode ?'red' : 'inherit',
-                      }} />
-                  </Tooltip>
+                  
 
                   </div>
 
@@ -1348,7 +1340,6 @@ if (user){
                                       >
                                         <option value="option1" >gpt-3.5-turbo</option>
                                         <option value="option2" disabled>mistral-8X7B⭐Pro</option>
-                                        <option value="option3" disabled>CodeLLama 70B⭐Pro</option>
                                       </select>
                                   </footer>
                                 {isAiLoading ? <ChatLoading/> :<></>}
@@ -1524,3 +1515,18 @@ export const getServerSideProps = async (context) => {
                                   </span> 
                                 </h2>
  */
+/**
+ * 
+ * 
+ <Tooltip placement="bottom" title={rocket}>
+                  <RocketOutlined 
+                  onClick={assistantsMode}
+                  style={{
+                        marginRight: '35px',
+                        cursor: 'pointer',
+                        color: isAssitantsMode ?'red' : 'inherit',
+                      }} />
+                  </Tooltip>
+ */
+
+                            

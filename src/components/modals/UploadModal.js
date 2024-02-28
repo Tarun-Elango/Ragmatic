@@ -104,9 +104,6 @@ function UploadModal(props){
     };
 
     const manualText=async ()=>{
-      // console.log(inputTextUploadHeader)
-      // console.log(inputTextUpload)
-      //TODO filter file type
       setPdfText('');
       setFile(null);
       setManualLoading(true)
@@ -145,9 +142,82 @@ function UploadModal(props){
       setPdfText("read");
       
     }
-    const url=()=>{
-      console.log(inputURLHeader)
-      console.log(inputURL )
+    
+
+    const url= async()=>{
+      setPdfText('');
+      setManualLoading(true)
+      setUploadResponse('')
+        
+      // Attempt to create a URL object with the inputURL
+      const urlObj = new URL(inputURL);
+      console.log(inputURL, "is a valid URL.");
+      if (urlObj.protocol === 'https:') {
+        console.log('The URL is secure and uses HTTPS.');
+
+        if (urlObj.hostname.includes("youtube.com") || urlObj.hostname.includes("youtu.be")) {
+          if (urlObj.searchParams.has('v') || urlObj.pathname.length > 1) {
+            console.log(inputURL, "is a valid YouTube video URL.");
+            //take the inputURL and retrieve the youtube video transcript 
+            const youtubeUrl ={
+              url:inputURL,
+              name:inputURLHeader,
+              userId:user.sub
+            }
+            const urlresponse = await fetch('/api/youtube', {
+              method: 'POST', // or 'POST' depending on your endpoint requirements
+              headers: {
+                'Content-Type': 'application/json', // Replace YOUR_AUTH_TOKEN_HERE with your actual token
+                'Authorization': `Bearer ${props.acToken}`
+              },
+              body: JSON.stringify(youtubeUrl)
+            });
+            const sample = await urlresponse.json();
+            console.log(sample.message);
+            setUploadResponse(sample.message);
+            setinputURL('');
+            setinputURLHeader('');
+            props.onUploadSuccess();
+          } else {
+            console.log(inputURL, "is a valid YouTube URL but not a direct video link.");
+            setUploadResponse("URL is not a direct video link.");
+          }
+        } else {
+          try{
+            // regular webpage
+            const inputtext = {
+              headerText:inputURLHeader,
+              bodyText:inputURL,
+              userId:user.sub
+            }
+            console.log(inputURL, "is a valid URL but not a YouTube URL.");
+            const urlresponse = await fetch('/api/url', {
+              method: 'POST', // or 'POST' depending on your endpoint requirements
+              headers: {
+                'Content-Type': 'application/json', // Replace YOUR_AUTH_TOKEN_HERE with your actual token
+                'Authorization': `Bearer ${props.acToken}`
+              },
+              body: JSON.stringify(inputtext)
+            });
+            const dataurl = await urlresponse.json();
+            console.log(dataurl.message);
+            setUploadResponse(dataurl.message);
+            setinputURL('');
+            setinputURLHeader('');
+            props.onUploadSuccess();
+
+          } catch (error) {
+            // If an error is caught, it means the inputURL is not a valid URL
+            console.error(inputURL, error);
+            setUploadResponse("enter a valid url")
+          }
+        }   
+      } else {
+        setUploadResponse("only Https links allowed")
+        console.error('The URL is not secure. Please use an HTTPS URL.');
+      }
+      setManualLoading(false)
+      setPdfText("read");
     }
 
   return (
@@ -205,24 +275,14 @@ function UploadModal(props){
     <Collapse expandIcon={customExpandIcon} className="site-collapse-custom-collapse" style={{ marginTop: '24px' }}>
       <Panel header={<Title level={4} style={{ color: '#eb2d3a', marginBottom: 0 }}>Website URL or YouTube Video</Title>} key="2" className="site-collapse-custom-panel">
         <Space direction="vertical" style={{ width: '100%' }}>
+          <h2>Please ensure to include the entire URL, starting with "https://"</h2>
           <Input placeholder="Give it a name" style={{ borderColor: '#CBD5E0', color: '#2D3748' }} value={inputURLHeader} onChange={(e)=>setinputURLHeader(e.target.value)}/>
           <Input placeholder="The url" style={{ borderColor: '#CBD5E0', color: '#2D3748' }} value={inputURL} onChange={(e)=>setinputURL(e.target.value)}/>
           <Button style={{ backgroundColor: '	#2dba4e'}} onClick={url} disabled={!inputURLHeader || !inputURL}>Process</Button>
         </Space>
       </Panel>
     </Collapse>
-    <Collapse expandIcon={customExpandIcon} className="site-collapse-custom-collapse" style={{ marginTop: '24px' }}>
-      <Panel header={<Title level={4} style={{ color: '#7d3865', marginBottom: 0 }}>Images</Title>} key="2" className="site-collapse-custom-panel">
-        <Space direction="vertical" style={{ width: '100%' }}>
-        </Space>
-      </Panel>
-    </Collapse>
-    <Collapse expandIcon={customExpandIcon} className="site-collapse-custom-collapse" style={{ marginTop: '24px' }}>
-      <Panel header={<Title level={4} style={{ color: '#032904', marginBottom: 0 }}>Excel</Title>} key="2" className="site-collapse-custom-panel">
-        <Space direction="vertical" style={{ width: '100%' }}>
-        </Space>
-      </Panel>
-    </Collapse>
+
 
       {file && !isManualLoading && (
         <div>
@@ -247,3 +307,19 @@ function UploadModal(props){
   )}
 
 export default UploadModal;
+
+/**
+ * 
+     <Collapse expandIcon={customExpandIcon} className="site-collapse-custom-collapse" style={{ marginTop: '24px' }}>
+      <Panel header={<Title level={4} style={{ color: '#7d3865', marginBottom: 0 }}>Images</Title>} key="2" className="site-collapse-custom-panel">
+        <Space direction="vertical" style={{ width: '100%' }}>
+        </Space>
+      </Panel>
+    </Collapse>
+    <Collapse expandIcon={customExpandIcon} className="site-collapse-custom-collapse" style={{ marginTop: '24px' }}>
+      <Panel header={<Title level={4} style={{ color: '#032904', marginBottom: 0 }}>Excel</Title>} key="2" className="site-collapse-custom-panel">
+        <Space direction="vertical" style={{ width: '100%' }}>
+        </Space>
+      </Panel>
+    </Collapse>
+ */

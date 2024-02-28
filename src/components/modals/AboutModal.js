@@ -22,7 +22,7 @@ function AboutModal({ hideAboutModal }) {
   return (
     <Modal 
     open={isModalVisible} 
-    title="Resource-labs: Your Friendly Resource Assitant!" 
+    title="Resource-Mind: AI Assitant for your resources." 
     onCancel={handleCancel}
     footer={[
       <div key="footer-content" style={{ display: 'flex', alignItems: 'center' }}>
@@ -42,10 +42,10 @@ function AboutModal({ hideAboutModal }) {
             <li>Word Documents</li>
             <li>Text Files</li>
             <li>Regular old plain text</li>
-            <strong>Future support:</strong>
-            <li>Excel Spreadsheets</li>
             <li>Website URL content</li>
             <li>YouTube Videos</li>
+            <strong>Future support:</strong>
+            <li>Excel Spreadsheets</li>
             <li>Images</li>
             
         </ul>

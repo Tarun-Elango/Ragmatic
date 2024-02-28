@@ -14,8 +14,10 @@
     "@supabase/supabase-js": "^2.39.3",
     "antd": "^5.12.5",
     "axios": "^1.6.2",
+    "dompurify": "^3.0.9",
     "eventsource-parser": "^1.1.1",
     "jose": "^5.2.0",
+    "jsdom": "^24.0.0",
     "langchain": "^0.1.0",
     "mammoth": "^1.6.0",
     "mongoose": "^8.0.2",
@@ -28,7 +30,8 @@
     "react-dom": "^18",
     "socket.io-client": "^4.7.4",
     "tailwindcss": "^3.4.0",
-    "uninstall": "^0.0.0"
+    "uninstall": "^0.0.0",
+    "youtube-transcript": "^1.0.6"
   },
   "devDependencies": {
     "@types/react": "18.2.46",

@@ -36,8 +36,8 @@ export default function Guest () {
 return(<>
 
 <Head>
-    <title>Resource-labs</title>
-    <meta name="description" content="Resource-labs - An AI document Assitant." />
+    <title>Resource-Mind</title>
+    <meta name="description" content="Resource-Mind: AI Assitant for your resources" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, "/>
     <link rel="icon" href="/favicon.ico" />
 </Head>
@@ -65,7 +65,7 @@ return(<>
       />
     </a>
 
-    <h1 className={styles.h1Bold} >Resource-labs</h1>
+    <h1 className={styles.h1Bold} >Resource-Mind</h1>
     <Tooltip placement="bottom" title={about}>
       <InfoCircleOutlined style={{ fontSize: '24px', paddingBottom:'5vh'}} onClick={()=>setIsAboutGuestOpen(true)}/>
     </Tooltip>
