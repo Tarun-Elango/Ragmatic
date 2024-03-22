@@ -21,9 +21,12 @@ export default async function handler(req) {
 
     const { userInfo } = await req.json();
   try {
-    const response = await fetchOpenAIAPI(userInfo);
+    console.log('--------------------------------------------------------------')
+    console.log('regular action') 
+    console.log('--------------------------------------------------------------')
+    const response = await fetchOpenAIAPI(userInfo); // the function returns the response from await fetch (openai.com/v1/chat/completions)
+    //console.log(response);
     const stream = await OpenAIStream(response);
-
     return new Response(stream, {
       headers: new Headers({
         "Cache-Control": "no-cache",

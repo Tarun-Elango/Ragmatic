@@ -1,4 +1,4 @@
-import React, { useEffect, useState} from 'react';
+import React, { useEffect, useState, useRef} from 'react';
 import { useRouter } from 'next/router';
 import {  UserOutlined, InfoCircleOutlined, PlusCircleOutlined, DoubleLeftOutlined,DoubleRightOutlined, RocketOutlined, DeleteOutlined,WarningOutlined,SearchOutlined, CalculatorOutlined, SettingOutlined ,CloudUploadOutlined } from '@ant-design/icons';
 import { Button, Input,Tooltip, Menu,List,Modal,notification, Switch, Checkbox  } from 'antd';
@@ -64,7 +64,7 @@ export default function Home({accessToken}) {
   const openChat = <span>Open ChatBar</span>
   const closeChat = <span>Close ChatBar</span>
   const search = <span>Search Mode: Use web search for additional power.</span>
-  const calculator = <span>Calculator Mode: AI uses a calculator to reliably perform math.</span>
+  const calculator = <span>Math Mode: AI uses a calculator to reliably perform math.</span>
   const rocket = <span>Assistants mode (2 per day)</span>
   const [isSearchActive, setSearchActive] = useState(false);
   const [isCalculatorActive, setCalculatorActive] = useState(false);
@@ -72,39 +72,52 @@ export default function Home({accessToken}) {
   const [isAssitantsMode, setisAssitantsMode] = useState(false)
 
 
-  const vanillaMode = async () => {
-    setIsVanillaMode(prevIsVanillaMode => {
-      const newState = !prevIsVanillaMode;
-      console.log(`vanilla mode ${newState ? 'on' : 'off'}`);
-      return newState;
-    });
-    console.log(selectedDoc)
-  };
-    const assistantsMode = async () => {
-      setisAssitantsMode(prevIsastMode => {
-        const newState = !prevIsastMode;
-        console.log(`Assitants mode ${newState ? 'on' : 'off'}`);
-        return newState;
-      });
-    };
+  // const vanillaMode = async () => {
+  //   setIsVanillaMode(prevIsVanillaMode => {
+  //     const newState = !prevIsVanillaMode;
+  //     console.log(`vanilla mode ${newState ? 'on' : 'off'}`);
+  //     return newState;
+  //   });
+  //   console.log(selectedDoc)
+  // };
+    // const assistantsMode = async () => {
+    //   setisAssitantsMode(prevIsastMode => {
+    //     const newState = !prevIsastMode;
+    //     console.log(`Assitants mode ${newState ? 'on' : 'off'}`);
+    //     return newState;
+    //   });
+    // };
   
   // Function to toggle search icon active state
-  const toggleSearch = () => {
-    setSearchActive(prevIsSearchMode => {
+// Function to toggle search icon active state and ensure calculator is inactive
+const toggleSearch = () => {
+  setSearchActive(prevIsSearchMode => {
       const newSState = !prevIsSearchMode;
       console.log(`Search mode ${newSState ? 'on' : 'off'}`);
-      return newSState;
-    });
-  };
 
-  // Function to toggle calculator icon active state
-  const toggleCalculator = () => {
-    setCalculatorActive(prevIsCalcMode => {
+      // If turning search mode on, ensure calculator mode is turned off
+      if (newSState) {
+          setCalculatorActive(false);
+      }
+
+      return newSState;
+  });
+};
+
+// Function to toggle calculator icon active state and ensure search is inactive
+const toggleCalculator = () => {
+  setCalculatorActive(prevIsCalcMode => {
       const newCState = !prevIsCalcMode;
-      console.log(`calculator mode ${newCState ? 'on' : 'off'}`);
+      console.log(`Calculator mode ${newCState ? 'on' : 'off'}`);
+
+      // If turning calculator mode on, ensure search mode is turned off
+      if (newCState) {
+          setSearchActive(false);
+      }
+
       return newCState;
-    });
-  };
+  });
+};
 
 
   const showModal = () => {
@@ -357,8 +370,9 @@ export default function Home({accessToken}) {
  }
 
   const [isAiLoading, setIsAiLoading]= useState(false)
-  
+  const shouldStopRef = useRef(false);
   const fetchAiResponse = async (id) => {
+    shouldStopRef.current = false; // Reset the stop flag when starting a new stream
     let responseMessage =""
     
     let supabasePastRetreive = ""
@@ -390,7 +404,7 @@ export default function Home({accessToken}) {
 
     // get the complete prompt
       try {
-        if (!isVanillaMode){
+        //if (!isVanillaMode){
           const openAiData = {
             prompt:inputText,
            
@@ -406,9 +420,9 @@ export default function Home({accessToken}) {
               body: JSON.stringify(openAiData)
             });
           dataPmt = await apiFetch.json(); // has the pmt
-        } else {
-          dataPmt = `- User Query: ${inputText}.-previousRelevantMessage:${supabasePastRetreive.message}.- Instruction to LLM: - Respond to user query. - Think step by step before answering. - Keep the response concise, within 200 words. - Refer to the previous relevant message only for context, and if no such message is found, ignore previous relevant message.`
-        }
+        // } else {
+        //   dataPmt = `- User Query: ${inputText}.-previousRelevantMessage:${supabasePastRetreive.message}.- Instruction to LLM: - Respond to user query. - Think step by step before answering. - Keep the response concise, within 200 words. - Refer to the previous relevant message only for context, and if no such message is found, ignore previous relevant message.`
+        // }
         //console.log(dataPmt)
         // get the response from open ai using sockets
         let currentAIMessage = ""
@@ -429,15 +443,35 @@ export default function Home({accessToken}) {
         setMessageList((prevMessages)=>[...prevMessages, initialEmpty]) 
 
         try{
-
-          const response = await fetch("/api/generate/edge", {
-            method: "POST",
-            headers: {
-              'Content-Type':'application/json',
-              'Authorization': `Bearer ${token}`
-          },
-            body: JSON.stringify({ userInfo: dataPmt }),
-          });
+          let response = null
+          if(isCalculatorActive){
+            response = await fetch("/api/calculator", {
+              method: "POST",
+              headers: {
+                'Content-Type':'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+              body: JSON.stringify({ userInfo: dataPmt }),
+            });
+          }else if (isSearchActive){
+            response = await fetch("/api/search", {
+              method: "POST",
+              headers: {
+                'Content-Type':'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+              body: JSON.stringify({ userInfo: dataPmt }),
+            });
+          }else{
+            response = await fetch("/api/generate/edge", {
+              method: "POST",
+              headers: {
+                'Content-Type':'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+              body: JSON.stringify({ userInfo: dataPmt }),
+            });
+          }
     
           if (response.status !== 200 || !response.body) {
             console.error("Failed to Generate");
@@ -459,7 +493,7 @@ export default function Home({accessToken}) {
           }
 
                   // defined as a callback for handling events parsed by the createParser
-        const onParse = (event) => {
+          const onParse = (event) => {
           
           //console.log('Event parsed', event); 
           /**
@@ -485,21 +519,21 @@ export default function Home({accessToken}) {
             } catch (e) {
               console.error("Error parsing event data", e);
             }
-          }
-        };
+            }
+          };
 
-        // read the stream with reader
-        const reader = response.body.getReader();
-        // decoder: bin to text
-        const decoder = new TextDecoder();
-        // takes a callback from onParse, to process the text
-        const parser = createParser(onParse);
-  
-
-        while (true) {
-          const { value, done } = await reader.read();
-  
-          if (done) {
+          // read the stream with reader
+          const reader = response.body.getReader();
+          // decoder: bin to text
+          const decoder = new TextDecoder();
+          // takes a callback from onParse, to process the text
+          const parser = createParser(onParse);
+    
+// TODO: change while true to something more manageble, handle case when done is not received
+          while (true) {
+            if (shouldStopRef.current) {
+              await reader.cancel();
+              console.log('Stream stopped manually');
               // retrieve the last complete message
               setMessageList((prevMessages) => {
                 const lastMessage = prevMessages[prevMessages.length - 1];
@@ -529,10 +563,43 @@ export default function Home({accessToken}) {
               setIsAiLoading(false)
               console.log('Disconnected by the server');
               break;
+            }
+            const { value, done } = await reader.read();
+    
+            if (done) {
+                // retrieve the last complete message
+                setMessageList((prevMessages) => {
+                  const lastMessage = prevMessages[prevMessages.length - 1];
+                  //console.log(lastMessage.text); // Print the entire previous message
+                  
+                  // call mongo store function
+                  responseMessage = {
+                    text:lastMessage.text,
+                    timestamp: new Date().toLocaleString(),
+                    align: 'left',
+                  };
+
+                  //addMessage(responseMessage, "ai")
+                  //console.log(responseMessage.text, "botMessage", currentChat.id)
+                  // add to users chat 
+                  addMessageMongo(responseMessage.text, "botMessage", id)
+                  
+                  // add the current user+ai to supabase
+                  postAiSupabase(responseMessage, id)
+                  //newSocket.off('disconnect'); // Remove the disconnect event listener after it has been executed once
+                  
+
+                  return prevMessages; // Return the previous messages without modification
+                });
+
+                // finish the message retireval process on the ui
+                setIsAiLoading(false)
+                console.log('Disconnected by the server');
+                break;
+            }
+    
+            parser.feed(decoder.decode(value));
           }
-  
-          parser.feed(decoder.decode(value));
-        }
 
 
 
@@ -561,6 +628,7 @@ export default function Home({accessToken}) {
 
 
   const handleStopButtonClick = async () => { 
+    shouldStopRef.current = true;
     setIsAiLoading(false)
   }
 
@@ -970,8 +1038,8 @@ if (user){
   return (
     <>
       <Head>
-          <title>Resource-Mind: AI for your Resource</title>
-          <meta name="description" content="Resource-Mind: AI Assitant for your resources" />
+          <title>Ragmatic: AI for your Resource</title>
+          <meta name="description" content="Ragmatic: AI Assitant for your resources" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -979,7 +1047,7 @@ if (user){
       <div style={{ display: 'flex', height: '100vh', backgroundColor: '#21262d'}}>
       {isLeftColumnVisible && (
       <div style={{ 
-          width: '30vh', 
+          width: '25vh', 
           display: 'flex', 
           flexDirection: 'column', 
           backgroundColor: '#36373A', 
@@ -1115,7 +1183,7 @@ if (user){
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column',  overflow: 'hidden' }}>
             <div style={{ maxHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#21262d', padding: '10px', overflow: 'auto' }}>
               <div style={{marginTop:'10px', display: 'flex', alignItems: 'center', width: '100%', height:'7.5vh' }}>
-                  <h3 style={{ flex: '1', marginRight: '15px', fontSize:'1.2em', color:'#fa7970'}}>Resource-Mind<Tooltip placement="bottom" title={text}>
+                  <h3 style={{ flex: '1', marginRight: '15px', fontSize:'1.2em', color:'#fa7970'}}><strong>Ragmatic</strong><Tooltip placement="bottom" title={text}>
                           <InfoCircleOutlined style={{marginLeft:'15px'}} onClick={()=>setIsAboutOpen(true)}/>
                       </Tooltip>
                   </h3>
@@ -1201,9 +1269,9 @@ if (user){
                             padding: '10px',
                             borderRadius: '10px',
                             display: 'inline-block',
-                            maxWidth: '80%',
-                            marginLeft: isUserMessage ? '20%' : '0',
-                            marginRight: isUserMessage ? '0' : '20%',
+                            maxWidth: '90%',
+                            marginLeft: isUserMessage ? '5%' : '0',
+                            marginRight: isUserMessage ? '0' : '5%',
                             wordBreak: 'break-word'
                           }} >  
                             <FormattedMessage text={messageText} />
@@ -1266,7 +1334,7 @@ if (user){
                     }}
                     disabled={isButtonDisabled}
                   >
-                    Send
+                    Ask
                   </Button>)}
                     
           
@@ -1339,7 +1407,7 @@ if (user){
                                         size="1" // Default size, it will expand to show all options when clicked
                                       >
                                         <option value="option1" >gpt-3.5-turbo</option>
-                                        <option value="option2" disabled>mistral-8X7B⭐Pro</option>
+                                        <option value="option2" disabled>gpt-4-turbo</option>
                                       </select>
                                   </footer>
                                 {isAiLoading ? <ChatLoading/> :<></>}

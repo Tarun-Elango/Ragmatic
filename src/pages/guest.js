@@ -36,8 +36,8 @@ export default function Guest () {
 return(<>
 
 <Head>
-    <title>Resource-Mind</title>
-    <meta name="description" content="Resource-Mind: AI Assitant for your resources" />
+    <title>Ragmatic</title>
+    <meta name="description" content="Ragmatic: AI Assitant for your resources" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, "/>
     <link rel="icon" href="/favicon.ico" />
 </Head>
@@ -65,7 +65,7 @@ return(<>
       />
     </a>
 
-    <h1 className={styles.h1Bold} >Resource-Mind</h1>
+    <h1 className={styles.h1Bold} >Ragmatic</h1>
     <Tooltip placement="bottom" title={about}>
       <InfoCircleOutlined style={{ fontSize: '24px', paddingBottom:'5vh'}} onClick={()=>setIsAboutGuestOpen(true)}/>
     </Tooltip>
@@ -92,27 +92,15 @@ return(<>
   </main>
   <footer className={styles.foot}>
   <div className={styles.shimmercontainer}>
-  <span className={styles.shimmertext}>Free to use</span> while in Beta version 
+  <span className={styles.shimmertext}>Free to use</span>
   
 </div>
 
     <div className={styles.footBox}>
-      <p>Hosted on </p>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
-      </svg>
+      <p>Hosted on GCP</p>
+      
       <h3 className={styles.poweredText}>  Powered by Open AI</h3> 
-      <h3 > <em> Beta version 0.1</em></h3> 
+      <h3 > <em> Beta version 0.3</em></h3> 
     </div>
   </footer>
 </div>

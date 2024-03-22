@@ -150,71 +150,77 @@ function UploadModal(props){
       setUploadResponse('')
         
       // Attempt to create a URL object with the inputURL
-      const urlObj = new URL(inputURL);
-      console.log(inputURL, "is a valid URL.");
-      if (urlObj.protocol === 'https:') {
-        console.log('The URL is secure and uses HTTPS.');
+      try {
+        const urlObj = new URL(inputURL);
+        console.log(inputURL, "is a valid URL.");
+        if (urlObj.protocol === 'https:') {
+          console.log('The URL is secure and uses HTTPS.');
 
-        if (urlObj.hostname.includes("youtube.com") || urlObj.hostname.includes("youtu.be")) {
-          if (urlObj.searchParams.has('v') || urlObj.pathname.length > 1) {
-            console.log(inputURL, "is a valid YouTube video URL.");
-            //take the inputURL and retrieve the youtube video transcript 
-            const youtubeUrl ={
-              url:inputURL,
-              name:inputURLHeader,
-              userId:user.sub
+          if (urlObj.hostname.includes("youtube.com") || urlObj.hostname.includes("youtu.be")) {
+            if (urlObj.searchParams.has('v') || urlObj.pathname.length > 1) {
+              console.log(inputURL, "is a valid YouTube video URL.");
+              //take the inputURL and retrieve the youtube video transcript 
+              const youtubeUrl ={
+                url:inputURL,
+                name:inputURLHeader,
+                userId:user.sub
+              }
+              const urlresponse = await fetch('/api/youtube', {
+                method: 'POST', // or 'POST' depending on your endpoint requirements
+                headers: {
+                  'Content-Type': 'application/json', // Replace YOUR_AUTH_TOKEN_HERE with your actual token
+                  'Authorization': `Bearer ${props.acToken}`
+                },
+                body: JSON.stringify(youtubeUrl)
+              });
+              const sample = await urlresponse.json();
+              console.log(sample.message);
+              setUploadResponse(sample.message);
+              setinputURL('');
+              setinputURLHeader('');
+              props.onUploadSuccess();
+            } else {
+              console.log(inputURL, "is a valid YouTube URL but not a direct video link.");
+              setUploadResponse("URL is not a direct video link.");
             }
-            const urlresponse = await fetch('/api/youtube', {
-              method: 'POST', // or 'POST' depending on your endpoint requirements
-              headers: {
-                'Content-Type': 'application/json', // Replace YOUR_AUTH_TOKEN_HERE with your actual token
-                'Authorization': `Bearer ${props.acToken}`
-              },
-              body: JSON.stringify(youtubeUrl)
-            });
-            const sample = await urlresponse.json();
-            console.log(sample.message);
-            setUploadResponse(sample.message);
-            setinputURL('');
-            setinputURLHeader('');
-            props.onUploadSuccess();
           } else {
-            console.log(inputURL, "is a valid YouTube URL but not a direct video link.");
-            setUploadResponse("URL is not a direct video link.");
-          }
-        } else {
-          try{
-            // regular webpage
-            const inputtext = {
-              headerText:inputURLHeader,
-              bodyText:inputURL,
-              userId:user.sub
-            }
-            console.log(inputURL, "is a valid URL but not a YouTube URL.");
-            const urlresponse = await fetch('/api/url', {
-              method: 'POST', // or 'POST' depending on your endpoint requirements
-              headers: {
-                'Content-Type': 'application/json', // Replace YOUR_AUTH_TOKEN_HERE with your actual token
-                'Authorization': `Bearer ${props.acToken}`
-              },
-              body: JSON.stringify(inputtext)
-            });
-            const dataurl = await urlresponse.json();
-            console.log(dataurl.message);
-            setUploadResponse(dataurl.message);
-            setinputURL('');
-            setinputURLHeader('');
-            props.onUploadSuccess();
+            try{
+              // regular webpage
+              const inputtext = {
+                headerText:inputURLHeader,
+                bodyText:inputURL,
+                userId:user.sub
+              }
+              console.log(inputURL, "is a valid URL but not a YouTube URL.");
+              const urlresponse = await fetch('/api/url', {
+                method: 'POST', // or 'POST' depending on your endpoint requirements
+                headers: {
+                  'Content-Type': 'application/json', // Replace YOUR_AUTH_TOKEN_HERE with your actual token
+                  'Authorization': `Bearer ${props.acToken}`
+                },
+                body: JSON.stringify(inputtext)
+              });
+              const dataurl = await urlresponse.json();
+              console.log(dataurl.message);
+              setUploadResponse(dataurl.message);
+              setinputURL('');
+              setinputURLHeader('');
+              props.onUploadSuccess();
 
-          } catch (error) {
-            // If an error is caught, it means the inputURL is not a valid URL
-            console.error(inputURL, error);
-            setUploadResponse("enter a valid url")
-          }
-        }   
-      } else {
-        setUploadResponse("only Https links allowed")
-        console.error('The URL is not secure. Please use an HTTPS URL.');
+            } catch (error) {
+              // If an error is caught, it means the inputURL is not a valid URL
+              console.error(inputURL, error);
+              setUploadResponse("enter a valid url")
+            }
+          }   
+        } else {
+          setUploadResponse("only Https links allowed")
+          console.error('The URL is not secure. Please use an HTTPS URL.');
+        }
+      } catch (error) {
+        // If an error is caught, it means the inputURL is not a valid URL
+        console.error(inputURL, error);
+        setUploadResponse("enter a valid url")
       }
       setManualLoading(false)
       setPdfText("read");
