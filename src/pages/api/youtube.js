@@ -29,7 +29,10 @@ export default async function handler(req, res) {
 
     console.log(videoId);
     try {
-        const subtitles = await YoutubeTranscript.fetchTranscript(videoId)
+        const config = {
+            lang: "en" // Set the language to English
+        };
+        const subtitles = await YoutubeTranscript.fetchTranscript(videoId, config)
         const combinedText = subtitles.map(segment => segment.text).join(' ');
         //console.log(combinedText);
         const splitter = new RecursiveCharacterTextSplitter({
