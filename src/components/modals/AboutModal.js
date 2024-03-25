@@ -47,12 +47,15 @@ function AboutModal({ hideAboutModal }) {
             <strong>Future support:</strong>
             <li>Excel Spreadsheets</li>
             <li>Images</li>
-            
+          
         </ul>
 
         </div>
 
         <p style={{ color: '#333', textAlign: 'center' }}><strong>Start Exploring !!</strong></p>
+
+<br/>
+        <h5><em>Note: This application is currently in its beta version, and due to the use of smaller servers, you might experience slower processing times.</em></h5>
 
     </div>
 </Modal>

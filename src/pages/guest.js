@@ -36,7 +36,7 @@ export default function Guest () {
 return(<>
 
 <Head>
-    <title>Ragmatic</title>
+    <title>Ragmatic - AI for your Resource</title>
     <meta name="description" content="Ragmatic: AI Assitant for your resources" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, "/>
     <link rel="icon" href="/favicon.ico" />
@@ -100,7 +100,7 @@ return(<>
       <p>Hosted on GCP</p>
       
       <h3 className={styles.poweredText}>  Powered by Open AI</h3> 
-      <h3 > <em> Beta version 0.3</em></h3> 
+      <h3 > <em> Beta version 1.0</em></h3> 
     </div>
   </footer>
 </div>

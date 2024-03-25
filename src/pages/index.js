@@ -1038,7 +1038,7 @@ if (user){
   return (
     <>
       <Head>
-          <title>Ragmatic: AI for your Resource</title>
+          <title>Ragmatic - AI for your Resource</title>
           <meta name="description" content="Ragmatic: AI Assitant for your resources" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="icon" href="/favicon.ico" />
