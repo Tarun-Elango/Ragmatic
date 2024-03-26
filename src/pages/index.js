@@ -1044,7 +1044,7 @@ if (user){
           <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div style={{ display: 'flex', height: '100vh', backgroundColor: '#21262d'}}>
+      <div style={{ display: 'flex', height: '100dvh', backgroundColor: '#21262d'}}>
       {isLeftColumnVisible && (
       <div style={{ 
           width: '25vh', 
@@ -1052,7 +1052,7 @@ if (user){
           flexDirection: 'column', 
           backgroundColor: '#36373A', 
           padding: '10px',
-          height: '100vh', 
+          height: '100dvh', 
           boxSizing: 'border-box', 
           justifyContent: 'space-between',
           fontSize:'0.8em'
@@ -1181,8 +1181,10 @@ if (user){
 
         {/* Main Content */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column',  overflow: 'hidden' }}>
-            <div style={{ maxHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#21262d', padding: '10px', overflow: 'auto' }}>
-              <div style={{marginTop:'10px', display: 'flex', alignItems: 'center', width: '100%', height:'7.5vh' }}>
+            <div style={{ maxHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#21262d', padding: '10px', overflow: 'auto' }}>
+
+              
+              <div style={{marginTop:'10px', display: 'flex', alignItems: 'center', width: '100%', height:'7.5dvh' }}>
                   <h3 style={{ flex: '1', marginRight: '15px', fontSize:'1.2em', color:'#fa7970'}}><strong>Ragmatic</strong><Tooltip placement="bottom" title={text}>
                           <InfoCircleOutlined style={{marginLeft:'15px'}} onClick={()=>setIsAboutOpen(true)}/>
                       </Tooltip>
@@ -1192,8 +1194,10 @@ if (user){
                   <Menu onClick={onClick}  mode="horizontal" items={accounts} style={{backgroundColor:'transparent', color:'white', marginRight:'15px'}} selectedKeys={[null]}/>
               </div>
 
+
+
               <div style={{
-                  height: '70vh',
+                  height: '75dvh',
                   display: 'flex',
                   flexDirection: 'column',
                   borderRadius: '10px',
@@ -1281,8 +1285,9 @@ if (user){
                     })}
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '12.5vh' }}>
 
+
+                <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '12.5dvh' }}>
                   <TextArea
                     value={inputText}
                     onChange={handleInputChangeTextArea}
@@ -1336,16 +1341,15 @@ if (user){
                   >
                     Ask
                   </Button>)}
-                    
-          
-                    
                 </div>
-                        <div style={{ 
+                    
+                    
+                    <div style={{ 
                             display: 'flex', 
                             alignItems: 'center', 
                             justifyContent: 'flex-start', // Align items to the start
                             width: '100%', // Ensure the div takes the full width of its container
-                            maxHeight: '5vh', 
+                            height: '5dvh', 
                             padding: '0 10px', 
                             boxSizing: 'border-box',
                         }}><style jsx>{`
@@ -1412,7 +1416,9 @@ if (user){
                                   </footer>
                                 {isAiLoading ? <ChatLoading/> :<></>}
                             </div>
-                        </div>
+                          </div>
+
+                        
                       </div>
                     </div>
           </div>
