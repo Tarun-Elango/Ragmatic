@@ -74,7 +74,7 @@ return(<>
     <h2 className = {styles.boxWords}>Resource-Tailored AI ChatBot.</h2>
     <p className="mb-4">
       <Tooltip placement="bottom" title={custom}>
-        Upload Resources -&gt; Get Your Custom AI Assistant.
+        Upload Resources & Get Your Custom AI Assistant.
       </Tooltip>
     </p>
     <p className="mb-4">
