@@ -82,7 +82,7 @@ return(<>
         Includes Vanilla AI Chatbot
       </Tooltip>
     </p>
-    <p className="mb-6">Supported file types: <span className={styles.blinkingCursor}><>pdf, word, text file, text input, Youtube videos, website URLs</></span></p>
+    <p className="mb-6">Supported file types: pdf, word, text file, text input, Youtube videos, website URLs</p>
 
     <div className={styles.buttonBox}>
       <button className={styles.loginButton} onClick={handleLogin}>
@@ -92,7 +92,7 @@ return(<>
   </main>
   <footer className={styles.foot}>
   <div className={styles.shimmercontainer}>
-  <span className={styles.shimmertext}>Free to use</span>
+ 
   
 </div>
 
