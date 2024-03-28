@@ -1033,7 +1033,6 @@ const toggleCalculator = () => {
       setSelectedDoc(updatedSelectedDoc);
     }   
   }
-  
 if (user){
   return (
     <>
@@ -1053,7 +1052,7 @@ if (user){
           backgroundColor: '#36373A', 
           padding: '10px',
           height: '100dvh', 
-          boxSizing: 'border-box', 
+          boxSizing: 'border-box',
           justifyContent: 'space-between',
           fontSize:'0.8em'
       }}>
@@ -1180,8 +1179,8 @@ if (user){
         </div>)}
 
         {/* Main Content */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <div style={{  display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#21262d', padding: '10px', overflow: 'hidden' }}>
+        
+            <div style={{flex:1,height:'100dvh',  display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#21262d', padding: '10px', overflow:'hidden' }}>
               <div style={{marginTop:'10px', display: 'flex', alignItems: 'center', width: '100%', height:'7.5dvh' }}>
                   <h3 style={{ flex: '1', marginRight: '15px', fontSize:'1.2em', color:'#fa7970'}}><strong>Ragmatic</strong><Tooltip placement="bottom" title={text}>
                           <InfoCircleOutlined style={{marginLeft:'15px'}} onClick={()=>setIsAboutOpen(true)}/>
@@ -1204,7 +1203,7 @@ if (user){
                   border: '1px solid black',
                   padding: '8px',
                   width: '100%',
-                  boxSizing: 'border-box',
+                  
                   marginRight: '0px'
                 }}>
                   {/* Icon Row */}
@@ -1349,7 +1348,7 @@ if (user){
                             width: '100%', // Ensure the div takes the full width of its container
                             height: '5dvh', 
                             padding: '0 10px', 
-                            boxSizing: 'border-box',
+                     
                         }}><style jsx>{`
                         h2 {
                           flex: 1;
@@ -1419,7 +1418,7 @@ if (user){
                         
                       </div>
                     </div>
-          </div>
+          
             {isUploadOpen && (
                   <UploadModal
                       isContactOpen={isUploadOpen}
