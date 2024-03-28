@@ -44,10 +44,8 @@ function AboutModal({ hideAboutModal }) {
             <li>Regular old plain text</li>
             <li>Website URL content</li>
             <li>YouTube Videos</li>
-            <strong>Future support:</strong>
-            <li>Excel Spreadsheets</li>
-            <li>Images</li>
-          
+            <strong>Pro version:</strong>
+            <li>Excel Spreadsheets (Due to storage limits this file type will only be available in Pro tier)</li>        
         </ul>
 
         </div>
