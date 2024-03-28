@@ -1044,7 +1044,7 @@ if (user){
           <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div style={{ display: 'flex', height: '100dvh', backgroundColor: '#21262d'}}>
+      <div style={{ display: 'flex', height: '100dvh', backgroundColor: '#21262d', overflow:'hidden'}}>
       {isLeftColumnVisible && (
       <div style={{ 
           width: '25vh', 
@@ -1180,10 +1180,8 @@ if (user){
         </div>)}
 
         {/* Main Content */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column',  overflow: 'hidden' }}>
-            <div style={{ maxHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#21262d', padding: '10px', overflow: 'auto' }}>
-
-              
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <div style={{  display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#21262d', padding: '10px', overflow: 'hidden' }}>
               <div style={{marginTop:'10px', display: 'flex', alignItems: 'center', width: '100%', height:'7.5dvh' }}>
                   <h3 style={{ flex: '1', marginRight: '15px', fontSize:'1.2em', color:'#fa7970'}}><strong>Ragmatic</strong><Tooltip placement="bottom" title={text}>
                           <InfoCircleOutlined style={{marginLeft:'15px'}} onClick={()=>setIsAboutOpen(true)}/>
