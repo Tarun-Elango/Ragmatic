@@ -99,7 +99,7 @@ return(<>
     <div className={styles.footBox}>
       <p>Hosted on GCP</p>
       
-      <h3 className={styles.poweredText}>  Powered by Open AI</h3> 
+      <h3 className={styles.poweredText}>  Powered by OpenAI</h3> 
       <h3 > <em> By Tarun Elango</em></h3> 
     </div>
   </footer>
