@@ -100,7 +100,7 @@ return(<>
       <p>Hosted on GCP</p>
       
       <h3 className={styles.poweredText}>  Powered by Open AI</h3> 
-      <h3 > <em> Beta version 1.0</em></h3> 
+      <h3 > <em> By Tarun Elango</em></h3> 
     </div>
   </footer>
 </div>
