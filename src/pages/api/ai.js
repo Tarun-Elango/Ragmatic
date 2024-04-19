@@ -190,7 +190,18 @@ export default async function handler(req, res) {
         console.log(`Execution time rerank: ${secondsre} seconds`);
 
         //create a final query for llm
-        const pmt = `- User Query: ${userQuery}.- Context from Uploaded Document:${rankedContent}.-previousRelevantMessage:${pastMessage}.- Instruction to LLM: - Answer users Query, by thinking through the problem step by step. - If provided then use the information from the uploaded document, supplemented with your own knowledge, to accurately and comprehensively answer the user's query. - If the document lacks sufficient or relevant details, rely on your knowledge base to provide an appropriate response, and if you cant come up with an answer say i dont know.- Additional Requirements: Refer to the previous relevant message only for context, and if no such message is found, ignore previous relevant message.`
+        const pmt = `- User Query: ${userQuery}
+        - Context from Uploaded Document: ${rankedContent}
+        - Previous Relevant Message: ${pastMessage}
+        - Instruction to LLM:
+            - Answer the user's query by thinking through the problem step by step.
+            - If provided, use the information from the uploaded document, supplemented with your own knowledge, to accurately and comprehensively answer the user's query.
+            - If the document lacks sufficient or relevant details, rely on your knowledge base to provide an appropriate response.
+            - If you can't come up with an answer, say "I don't know."
+        - Additional Requirements:
+            - Refer to the previous relevant message only for context.
+            - If no such message is found, ignore the previous relevant message.`;
+        
         console.log(pmt.length)
 
         res.status(200).json(pmt);
