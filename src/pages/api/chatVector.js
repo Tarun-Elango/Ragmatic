@@ -2,8 +2,7 @@ const { createClient } = require('@supabase/supabase-js');
 // import { pipeline } from '@xenova/transformers'
 import { middleware } from "../../middleware/middleware";
 import axios from 'axios';
-// import { env } from '@xenova/transformers'
-// env.cacheDir = '../../cache';
+
 function dotProduct(vec1, vec2) {
     let product = 0;
     for (let i = 0; i < vec1.length; i++) {
@@ -57,7 +56,7 @@ async function fetchRowsByChatId(chatId) {
             console.error('Error fetching rows:', error);
             throw error;
         }
-
+        //console.log('after getting data', data[0].vector_embedding)
         return data;
     } catch (error) {
         console.error('Error in fetchRowsByChatId:', error);
@@ -132,15 +131,9 @@ export default async function handler(req, res) {
                 const rows = await fetchRowsByChatId(chatId);
 
                 if (rows) {
-                    //console.log('Retrieved rows:', rows);
+                   // console.log('Retrieved rows:', rows);
                     // Further processing with rows
-                } else {
-                    console.log('No rows retrieved or an error occurred');
-                }
-                
-                    // find the closest chat between the list from supabase(rows) and the embedding of the user query(embeddingUserQuery)
-
-                    let closestVec = rows[0].vector_embedding;
+                    let closestVec = typeof rows[0].vector_embedding ==='string' ? JSON.parse(rows[0].vector_embedding) : rows[0].vector_embedding
                     // TODO: add all user queries
                     let closestVecIndex = 0
                     // closest vector from chatemblist to user query
@@ -148,11 +141,12 @@ export default async function handler(req, res) {
                         console.log('no messages returned')
                     }
                     else{
+                        
                         // closest rpevious message to current user query
                         let minDistance = cosineDistance(embeddingUserQuery, closestVec);
-            
                         for (let i = 1; i < rows.length; i++) {
-                            let distance = cosineDistance(embeddingUserQuery, rows[i].vector_embedding);
+                            let vec = typeof rows[i].vector_embedding ==='string' ? JSON.parse(rows[i].vector_embedding) : rows[i].vector_embedding
+                            let distance = cosineDistance(embeddingUserQuery, vec);
                             if (distance < minDistance) {
                                 minDistance = distance;
                                 closestVec = rows[i].vector_embedding;
@@ -160,11 +154,20 @@ export default async function handler(req, res) {
                             }
                         }
                     }
+                   // console.log(rows[closestVecIndex].text_string)
                     //console.log( rows[closestVecIndex]) // get the message from the row eqivalent and sent as reponse
                     let diff = process.hrtime(startTime);
                     let seconds = diff[0] + diff[1] / 1e9; // Convert nanoseconds to seconds
                     console.log(`Execution time for supabase find closest embeddings: ${seconds} seconds`);
                     return res.status(200).json({ message: `${rows[closestVecIndex].text_string}` });
+                } else {
+                    console.log('No rows retrieved or an error occurred');
+                    return res.status(200).json({ message:'no rows retrieved'})
+                }
+                
+                    // find the closest chat between the list from supabase(rows) and the embedding of the user query(embeddingUserQuery)
+
+                    
             }
         
             // Handle request with both a chat ID and a message
@@ -179,9 +182,10 @@ export default async function handler(req, res) {
             //     normalize: true,
             // });
             // const embedding = Array.from(embeddingResult.data);
-
+  
+            const valueTrimmed = combinedMessage.replace(/\s+/g, ' ').trim()
             const requestBody ={
-                "sentences":[combinedMessage]
+                "sentences":[valueTrimmed]
             }
             let embeddingCombMess=[]
             try {
@@ -210,6 +214,7 @@ export default async function handler(req, res) {
               }
 
             // add to db
+            //console.log('length before inserting', embeddingCombMess)
             const response =  insertVectorEmbedding(chatId, combinedMessage, embeddingCombMess)
             .then(data => console.log('Inserted data:', data))
             .catch(err => console.error(err));

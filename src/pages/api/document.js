@@ -1,15 +1,10 @@
 import connectDB from '../../helper/mongodb';
 import Document from '../../models/Document';
-import { Pinecone } from '@pinecone-database/pinecone';
 import { middleware } from "../../middleware/middleware";
-import Pages from '../../models/Pages'
 import Mes from '../../models/Mes';
 import Chat from '../../models/Chat'
-
-  const pinecone = new Pinecone({
-    apiKey: process.env.PINECONE_API_KEY,
-    environment:process.env.PINECONE_ENVIRONMENT,
-  });
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
   
 
 connectDB();
@@ -69,10 +64,25 @@ export default async function handler(req, res) {
     try {
         const { docId, docName } = req.body;
     
-        const index = pinecone.index('jotdown')
-        // Delete embeddings from Pinecone
-        await index.namespace(docName).deleteAll();
+        // const index = pinecone.index('jotdown')
+        // // Delete embeddings from Pinecone
+        // await index.namespace(docName).deleteAll();
+        const { data, error } = await supabase
+        .from('pages')
+        .delete()
+        .match({ document: docId });
+
+    if (error) {
+        console.error('Error deleting pages:', error);
+        return res.status(500).json({ success: false, message: 'Error deleting pages' });
+    } else {
+        console.log('Deleted pages:', data);
+    }
+
+
         console.log('-----------------------------')
+        console.log('deleting pages')
+
         // Delete the document
         const result = await Document.deleteMany({ docuId: docId });
         if (result.deletedCount === 0) {
@@ -101,11 +111,10 @@ export default async function handler(req, res) {
         }
         console.log('deleted chats and messages')
 
-        console.log('-----------------------------')
-        console.log('deleting pages')
-        // Delete all pages associated with the document
-        const pagesDelete = await Pages.deleteMany({ document: docId });
-        console.log(pagesDelete)
+        
+        // // Delete all pages associated with the document
+        // const pagesDelete = await Pages.deleteMany({ document: docId });
+        // console.log(pagesDelete)
         
     
     
