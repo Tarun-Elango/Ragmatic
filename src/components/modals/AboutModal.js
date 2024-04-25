@@ -31,10 +31,10 @@ function AboutModal({ hideAboutModal }) {
         </Button>
     </div> 
     ]}>
-      <h3 > <em> Beta version 1.0</em></h3> 
+      <h3 > <em> Beta version 1.1</em></h3> 
     <div className="about-modal" style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '10px',fontFamily: 'Roboto Mono, monospace' }}>
         <p style={{ color: '#333', textAlign: 'center' }}>Quickly upload and get AI assistance for your files.</p>
-        
+        <p style={{ color: '#333', textAlign: 'center' }}>Combine files if you want.</p>
         <div style={{ marginTop: '10px', marginBottom: '20px', color: '#555' }}>
         <strong>Supported File Types:</strong>
             <ul style={{ listStyleType: 'disc', padding: 0 }}>
@@ -44,17 +44,14 @@ function AboutModal({ hideAboutModal }) {
             <li>Regular old plain text</li>
             <li>Website URL content</li>
             <li>YouTube Videos</li>
-            <strong>Pro version:</strong>
-            <li>Excel Spreadsheets (Due to storage limits this file type will only be available in Pro tier)</li>        
+            <strong>Pro version (Due to storage limits these file type will only be available in Pro tier)</strong>
+            <li>Excel Spreadsheets </li>
+            <li>Images </li>           
         </ul>
-
         </div>
-
         <p style={{ color: '#333', textAlign: 'center' }}><strong>Start Exploring !!</strong></p>
-
-<br/>
+        <br/>
         <h5><em>Note: This application is currently in its beta version, and due to the use of smaller servers, you might experience slower processing times.</em></h5>
-
     </div>
 </Modal>
 

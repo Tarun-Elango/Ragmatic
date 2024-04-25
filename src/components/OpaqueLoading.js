@@ -18,7 +18,7 @@ const OpaqueLoading = ({ isShowing }) => {
             zIndex: 1000,
           }}>
             <Spin size="large" />
-            <h2 style={{marginLeft:'20px'}}> Large docs take a wee bit longer to process, support us to improve our server.</h2>
+            <h2 style={{marginLeft:'20px'}}> Large docs takes longer to process, support us to improve our servers.</h2>
           </div>
     )
 }

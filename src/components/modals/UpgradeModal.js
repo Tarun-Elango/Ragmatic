@@ -44,7 +44,7 @@ function UpgradeModal({ hideUpgradeModal }) {
       <li style={{ marginBottom: '8px' }}>Unlimited Resources</li>
       <li style={{ marginBottom: '8px' }}>Unlimited Messages</li>
       <li style={{ marginBottom: '8px' }}>Unlimited Tool Usage</li>
-      <li>AI model: Custom GPT-3.5-turbo</li>
+      <li>AI model: Custom GPT-4-turbo</li>
     </ul>
     <Button style={{ backgroundColor: '#007BFF', color: 'white', padding: '6px 12px', borderRadius: '5px', border: 'none', fontFamily: 'Roboto, sans-serif', fontWeight: 'medium' }}>
       Continue to Payment

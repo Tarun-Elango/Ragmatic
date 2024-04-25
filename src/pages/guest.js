@@ -67,11 +67,12 @@ return(<>
 
   {/* Main Content Component */}
   <main className={styles.mainclassBox}>
-    <h2 className={styles.boxWords}>Resource-Tailored AI ChatBot.</h2>
+    <h2 className={styles.boxWords}>Custom AI Assistant Tailored to Your Resources</h2>
     <p className={styles.description}>
-      Upload resources & get your custom AI assistant.
+      Upload resources & get your custom AI assistant
     </p>
-    <p className={styles.supportedTypes}>Supported file types: pdf, word, text file, text input, YouTube videos, website URLs</p>
+    <p className={styles.supportedTypes}>Supported file types: PDF, Word, Text file, Text input, YouTube videos, Website URLs, Images</p>
+    <p className={styles.third}>AI Equipped with Internet access and a built-in calculator</p>
     <div className={styles.buttonBox}>
       <button className={styles.loginButton} onClick={handleLogin}>
         Login to get started
