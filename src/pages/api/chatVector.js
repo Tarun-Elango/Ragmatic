@@ -1,6 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 import { middleware } from "../../middleware/middleware";
-import axios from 'axios';
+import OpenAI from 'openai';
 const openaio = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
@@ -151,14 +151,11 @@ export default async function handler(req, res) {
             ///////////////////////////////// Handle request with both a chat ID and a message, upload most reecent user given chat
             if (!userQuery) {
             const valueTrimmed = combinedMessage.replace(/\s+/g, ' ').trim()
-            const requestBody ={
-                "sentences":[valueTrimmed]
-            }
             let embeddingCombMess=[]
             try {
                 const embeddingResponse = await openaio.embeddings.create({
                     model: 'text-embedding-3-small',
-                    input: userQuery,
+                    input: valueTrimmed,
                 })
                 const [{ embedding }] = embeddingResponse.data;
                 embeddingCombMess= embedding
