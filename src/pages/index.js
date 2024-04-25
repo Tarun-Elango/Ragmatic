@@ -195,7 +195,7 @@ const toggleCalculator = () => {
         };
 
       try {
-          const response = await fetch('api/messages', {
+          const response = await fetch('api/mongo/messages', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -240,7 +240,7 @@ const toggleCalculator = () => {
         }
 
       try {
-          const response = await fetch('api/chats', {
+          const response = await fetch('api/mongo/chats', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -445,7 +445,7 @@ const toggleCalculator = () => {
         try{
           let response = null
           if(isCalculatorActive){
-            response = await fetch("/api/calculator", {
+            response = await fetch("/api/agent/calculator", {
               method: "POST",
               headers: {
                 'Content-Type':'application/json',
@@ -454,7 +454,7 @@ const toggleCalculator = () => {
               body: JSON.stringify({ userInfo: dataPmt }),
             });
           }else if (isSearchActive){
-            response = await fetch("/api/search", {
+            response = await fetch("/api/agent/search", {
               method: "POST",
               headers: {
                 'Content-Type':'application/json',
@@ -653,7 +653,7 @@ const toggleCalculator = () => {
       setCurrentChat({ index: chatArray.findIndex(chat => chat._id === chatId), id: chatId });
       // Step 2: Fetch Chat Content
       try {
-          const response = await fetch(`/api/messages?chatID=${chatId}`, {
+          const response = await fetch(`/api/mongo/messages?chatID=${chatId}`, {
             method: 'GET',
             headers: {
                 'Content-Type':'application/json',
@@ -770,7 +770,7 @@ const toggleCalculator = () => {
       };
     
       try {
-        const response = await fetch('/api/document', {
+        const response = await fetch('/api/mongo/document', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}` },
@@ -853,7 +853,7 @@ const toggleCalculator = () => {
       
       // delete the chat onpressing yes
       try {
-          const response = await fetch(`/api/chats?chatId=${chatIdToDelete}`, {
+          const response = await fetch(`/api/mongo/chats?chatId=${chatIdToDelete}`, {
             method: 'DELETE',
             headers: {
               // Add any necessary headers here
@@ -898,7 +898,7 @@ const toggleCalculator = () => {
   const fetchChatMessages = async (userId, pdfId) => {
     setChatArray([])
       try {
-        const response = await fetch(`/api/chats?userID=${customEncodeURI(userId)}`, {
+        const response = await fetch(`/api/mongo/chats?userID=${customEncodeURI(userId)}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}` }
@@ -949,7 +949,7 @@ const toggleCalculator = () => {
       const deleteName = docArray[deleteIndex].docuName
       const body = JSON.stringify({ docId:deleteid, docName:deleteName });
       try {
-          const response = await fetch('api/document', {
+          const response = await fetch('api/mongo/document', {
             method: 'DELETE',
             headers: {
               'Content-Type': 'application/json',

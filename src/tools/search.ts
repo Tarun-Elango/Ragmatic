@@ -11,7 +11,7 @@ function createGoogleCustomSearch({ apiKey, googleCSEId }: { apiKey: string; goo
   });
   const name = 'googleCustomSearch';
   const description = 'A custom search engine. Useful for when you need to answer questions about current events. Input should be a search query. Outputs a JSON array of results.';
-
+  // https://programmablesearchengine.google.com/u/2/controlpanel/all with reasourcelabs
   const execute = async ({ input }: z.infer<typeof paramsSchema>) => {
     try {
       const res = await fetch(

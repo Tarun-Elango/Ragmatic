@@ -60,24 +60,22 @@ function UploadModal(props){
       }
   }
 
-  const handleOk = async (e) => {
+  const handleOk = async (e) => { // function for pdf, word, text file
     e.preventDefault();
     if (!file) return;
     
-    //TODO filter file type
     setPdfText('');
     setFile(null);
     setManualLoading(true)
         
     try {
-      // set the loading symbol
-      // process the pdf and send to pinecone, namespace (i.e pinecone docuname) = user id + pdf name
+      // process the pdf and send to vector db, namespace (i.e docuname) = user id + pdf name
       const formData = new FormData();
       formData.append('file', file);
       const userId = user.sub
       formData.append('userId', userId)
       // call this endpoint to store the file after upload
-      const response = await fetch('/api/parse', {
+      const response = await fetch('/api/upload/parse', {
         method: 'POST',
         headers: {
               'Authorization': `Bearer ${props.acToken}`
@@ -101,15 +99,14 @@ function UploadModal(props){
       fileInputRef.current.value = '';
     }
 
-    };
+  };
 
-    const manualText=async ()=>{
+  const manualText=async ()=>{ // function for text field
       setPdfText('');
       setFile(null);
       setManualLoading(true)
           
       try {
-        // set the loading symbol
         // process the pdf and send to pinecone, namespace (i.e pinecone docuname) = user id + pdf name
         const inputtext = {
           headerText:inputTextUploadHeader,
@@ -117,7 +114,7 @@ function UploadModal(props){
           userId:user.sub
         }
         // call this endpoint to store the file after upload
-        const response = await fetch('/api/input', {
+        const response = await fetch('/api/upload/input', {
           method: 'POST',
           headers: {
                 'Authorization': `Bearer ${props.acToken}`,
@@ -141,10 +138,10 @@ function UploadModal(props){
       setManualLoading(false)
       setPdfText("read");
       
-    }
+  }
     
 
-    const url= async()=>{
+  const url= async()=>{ //function for url, youtube
       setPdfText('');
       setManualLoading(true)
       setUploadResponse('')
@@ -156,7 +153,7 @@ function UploadModal(props){
         if (urlObj.protocol === 'https:') {
           console.log('The URL is secure and uses HTTPS.');
 
-          if (urlObj.hostname.includes("youtube.com") || urlObj.hostname.includes("youtu.be")) {
+          if (urlObj.hostname.includes("youtube.com") || urlObj.hostname.includes("youtu.be")) { // youtube if
             if (urlObj.searchParams.has('v') || urlObj.pathname.length > 1) {
               console.log(inputURL, "is a valid YouTube video URL.");
               //take the inputURL and retrieve the youtube video transcript 
@@ -165,7 +162,7 @@ function UploadModal(props){
                 name:inputURLHeader,
                 userId:user.sub
               }
-              const urlresponse = await fetch('/api/youtube', {
+              const urlresponse = await fetch('/api/upload/youtube', {
                 method: 'POST', // or 'POST' depending on your endpoint requirements
                 headers: {
                   'Content-Type': 'application/json', // Replace YOUR_AUTH_TOKEN_HERE with your actual token
@@ -183,7 +180,7 @@ function UploadModal(props){
               console.log(inputURL, "is a valid YouTube URL but not a direct video link.");
               setUploadResponse("URL is not a direct video link.");
             }
-          } else {
+          } else { // any other url
             try{
               // regular webpage
               const inputtext = {
@@ -192,7 +189,7 @@ function UploadModal(props){
                 userId:user.sub
               }
               console.log(inputURL, "is a valid URL but not a YouTube URL.");
-              const urlresponse = await fetch('/api/url', {
+              const urlresponse = await fetch('/api/upload/url', {
                 method: 'POST', // or 'POST' depending on your endpoint requirements
                 headers: {
                   'Content-Type': 'application/json', // Replace YOUR_AUTH_TOKEN_HERE with your actual token
@@ -224,7 +221,12 @@ function UploadModal(props){
       }
       setManualLoading(false)
       setPdfText("read");
-    }
+  }
+
+  //TODO: create a function for images
+
+  //TODO: create a function for excel
+
 
   return (
     

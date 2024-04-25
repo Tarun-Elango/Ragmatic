@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   const result = await middleware(req);
 
   if (!result.success) {
-    res.status(400).json({ success: false, message: result.message });
+    res.status(400).json({ success: false, message: "Its live, but no access token" });
   } else {
     // Access token details from the request
     const { exp } = result.tokenDetails;

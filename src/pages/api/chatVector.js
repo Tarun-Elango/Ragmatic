@@ -1,8 +1,9 @@
 const { createClient } = require('@supabase/supabase-js');
-// import { pipeline } from '@xenova/transformers'
 import { middleware } from "../../middleware/middleware";
 import axios from 'axios';
-
+const openaio = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+});
 function dotProduct(vec1, vec2) {
     let product = 0;
     for (let i = 0; i < vec1.length; i++) {
@@ -77,55 +78,39 @@ export default async function handler(req, res) {
             if (req.method !== 'POST') {
             return res.status(405).json({ message: 'Only POST requests are allowed' });
             }
-        //////////////////////////get client accesstoken from auth0
-    const postData = `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"${process.env.AUTH0_AUD}","grant_type":"client_credentials"}`
-    const headers = {
-        'Content-Type': 'application/json',
-    }
+        // //////////////////////////get client accesstoken from auth0
+        // const postData = `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"${process.env.AUTH0_AUD}","grant_type":"client_credentials"}`
+        // const headers = {
+        //     'Content-Type': 'application/json',
+        // }
 
-    const response = await axios.post(process.env.AUTH0_TOKEN, postData, { headers });
+        // const response = await axios.post(process.env.AUTH0_TOKEN, postData, { headers });
 
-    // Extract the data from the response
-    const data = response.data;
-    const accessToken = data.access_token // this has the accesstoken
-            // Handle request with just a chat ID
+        // // Extract the data from the response
+        // const data = response.data;
+        // const accessToken = data.access_token // this has the accesstoken
+
+            //////////////////////////// Handle request with just a chat ID, get the closest previous chat
             if (!combinedMessage) {
                 let startTime = process.hrtime();
                 // get the embdedding of userquery
                 const requestBody ={
                     "sentences":[userQuery]
                 }
-                let embeddingUserQuery=[]
+                let embeddingUserQuery=null
                 try {
-                    // Make a POST request to the server endpoint
-                    const response = await fetch(`${process.env.BASEURL}/api/ebd`, {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${accessToken}`
-                      },
-                      body: JSON.stringify(requestBody)
-                    });
-                  
-                    // Check if the request was successful
-                    if (!response.ok) {
-                      throw new Error(`Error: ${response.statusText}`);
-                    }
-                  
-                    // Parse the JSON response
-                    const dataemb = await response.json();
-                    embeddingUserQuery = dataemb.embeddings[0].embedding
+
+                    const embeddingResponse = await openaio.embeddings.create({
+                        model: 'text-embedding-3-small',
+                        input: userQuery,
+                    })
+                    const [{ embedding }] = embeddingResponse.data;
+                    embeddingUserQuery = embedding
                   
                   } catch (error) {
                     console.error('Failed to fetch embeddings:', error);
                     return res.status(400).json({ error: 'Open ai embedding error', message:'Open ai embedding error' });
                   }
-
-                // const embeddingResultUser = await generateEmbedding(userQuery, {
-                //     pooling: 'mean',
-                //     normalize: true,
-                // });
-                // const embeddingUserQuery = Array.from(embeddingResultUser.data);
                 
                 // get all chat messages by current chat id
                 const rows = await fetchRowsByChatId(chatId);
@@ -141,8 +126,7 @@ export default async function handler(req, res) {
                         console.log('no messages returned')
                     }
                     else{
-                        
-                        // closest rpevious message to current user query
+                        // closest previous message to current user query
                         let minDistance = cosineDistance(embeddingUserQuery, closestVec);
                         for (let i = 1; i < rows.length; i++) {
                             let vec = typeof rows[i].vector_embedding ==='string' ? JSON.parse(rows[i].vector_embedding) : rows[i].vector_embedding
@@ -154,8 +138,6 @@ export default async function handler(req, res) {
                             }
                         }
                     }
-                   // console.log(rows[closestVecIndex].text_string)
-                    //console.log( rows[closestVecIndex]) // get the message from the row eqivalent and sent as reponse
                     let diff = process.hrtime(startTime);
                     let seconds = diff[0] + diff[1] / 1e9; // Convert nanoseconds to seconds
                     console.log(`Execution time for supabase find closest embeddings: ${seconds} seconds`);
@@ -163,51 +145,24 @@ export default async function handler(req, res) {
                 } else {
                     console.log('No rows retrieved or an error occurred');
                     return res.status(200).json({ message:'no rows retrieved'})
-                }
-                
-                    // find the closest chat between the list from supabase(rows) and the embedding of the user query(embeddingUserQuery)
-
-                    
+                }     
             }
         
-            // Handle request with both a chat ID and a message
+            ///////////////////////////////// Handle request with both a chat ID and a message, upload most reecent user given chat
             if (!userQuery) {
-            // store the combiendmessage vector embedding
-
-            // get the embeddings of the combined message
-            //get the combined message embeddings
-
-            // const embeddingResult = await generateEmbedding(combinedMessage, {
-            //     pooling: 'mean',
-            //     normalize: true,
-            // });
-            // const embedding = Array.from(embeddingResult.data);
-  
             const valueTrimmed = combinedMessage.replace(/\s+/g, ' ').trim()
             const requestBody ={
                 "sentences":[valueTrimmed]
             }
             let embeddingCombMess=[]
             try {
-                // Make a POST request to the server endpoint
-                const response = await fetch(`${process.env.BASEURL}/api/ebd`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
-                  },
-                  body: JSON.stringify(requestBody)
-                });
-              
-                // Check if the request was successful
-                if (!response.ok) {
-                  throw new Error(`Error: ${response.statusText}`);
-                }
-              
-                // Parse the JSON response
-                const dataemb = await response.json();
-                embeddingCombMess = dataemb.embeddings[0].embedding
-              
+                const embeddingResponse = await openaio.embeddings.create({
+                    model: 'text-embedding-3-small',
+                    input: userQuery,
+                })
+                const [{ embedding }] = embeddingResponse.data;
+                embeddingCombMess= embedding
+
               } catch (error) {
                 console.error('Failed to fetch embeddings:', error);
                 return res.status(400).json({ error: 'Open ai embedding error', message:'Open ai embedding error' });
@@ -220,10 +175,9 @@ export default async function handler(req, res) {
             .catch(err => console.error(err));
             return res.status(200).json({ message: `Stored the most recent user+ai message to vector db using combined message ${response}` });
             }
-        
+    
             // If neither condition is met, return an error
             return res.status(400).json({ message: 'Invalid request' });
-
-}
+    }   
   }
   

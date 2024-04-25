@@ -1,7 +1,6 @@
-import connectDB from '../../helper/mongodb';
-import Mes from '../../models/Mes';
-import Chat from '../../models/Chat'
-import { middleware } from "../../middleware/middleware";
+import connectDB from '../../../helper/mongodb';
+import Mes from '../../../models/Mes';
+import { middleware } from "../../../middleware/middleware";
 
 connectDB();
 export const config = {

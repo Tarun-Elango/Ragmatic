@@ -1,10 +1,8 @@
-import connectDB from '../../helper/mongodb';
-import Mes from '../../models/Mes';
-import Chat from '../../models/Chat'
-import ChatV2 from '../../models/ChatV2'
-import { middleware } from "../../middleware/middleware";
+import connectDB from '../../../helper/mongodb';
+import Mes from '../../../models/Mes';
+import ChatV2 from '../../../models/ChatV2'
+import { middleware } from "../../../middleware/middleware";
 const { createClient } = require('@supabase/supabase-js');
-// Create a single Supabase client for interacting with your database
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 connectDB();

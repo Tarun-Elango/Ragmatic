@@ -12,7 +12,7 @@ const mammoth = require("mammoth");
 import axios from 'axios';
 const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-import { middleware } from "../../middleware/middleware";
+import { middleware } from "../../../middleware/middleware";
 
 
 // const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small') 
@@ -84,92 +84,43 @@ apiRoute.post(async (req, res) => {
     //get the current docs namespace
    const customNamespace =`${userId}${filepath.replace("-", "").replace(/\s/g, "_")}`;;
 
-    //////////////////////////get client accesstoken from auth0
-    const postData = `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"${process.env.AUTH0_AUD}","grant_type":"client_credentials"}`
-    const headers = {
-        'Content-Type': 'application/json',
-    }
-
-    const response = await axios.post(process.env.AUTH0_TOKEN, postData, { headers });
-
-    // Extract the data from the response
-    const data = response.data;
-    const accessToken = data.access_token // this has the accesstoken
-
     //add the doc to mongodb
     let mongoResponse
     try {
-
-      // create a new doc in mongo, just the doc details
-      const userRefID = userId
-      const docuName = customNamespace
-      //console.log('here')
-      const response = await fetch(`${process.env.BASEURL}/api/document`, { // Use a full URL if necessary
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`
-        },
-        body: JSON.stringify({
-            userRefID: userRefID,
-            docuName: docuName,
-            type: "add"
-        })
+      //add doc to mongodb directly
+      const existingUserDocu = await Document.findOne({
+        userRefID: userId,
+        docuName: customNamespace
       });
-
-    if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-    }
-
-    mongoResponse = await response.json();
-    if (mongoResponse.message && mongoResponse.message.includes('document already exists')) {
-      // Handle the case where the document already exists
-      return res.status(200).json({
-        message: 'File already exists',
-      //   fileName: uploadedFile.originalname,
-      //   fileSize: uploadedFile.size,
-      });
-    } 
-    // Process the response data as needed
-    } catch (error) {
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        console.error('Error Response:', error);
-      } else if (error.request) {
-        // The request was made but no response was received
-        console.error('Error Request:');
+      if (existingUserDocu) {
+          return res.status(200).json({ message:'File already exists' });
       } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error('Error Message:', error);
+          try {
+              const document = new Document({userRefID:userId, docuName:customNamespace });
+              await document.save();
+              mongoResponse = document
+             // return res.status(201).json({message:'Doc added success',result:document});
+          } catch (error) {
+              return res.status(500).json({ error: 'Error creating user\'s document' });
+          }
       }
-      return res.status(400).json({ error: 'MongoDb error', message:'MongoDb error' });
-    }
+        } catch (error) {
+          return res.status(400).json({ error: 'MongoDb error', message:'MongoDb error' });
+        }
+
+
    
- // get the embeddings
- const requestBody ={
-  "sentences":test
-}
 let dataemb = null
 try {
-  // Make a POST request to the server endpoint
-  const response = await fetch(`${process.env.BASEURL}/api/ebd`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${accessToken}`
-    },
-    body: JSON.stringify(requestBody)
+  const embeddingsResponse = await openaio.embeddings.create({
+    input: test,
+    model: 'text-embedding-3-small', // or another suitable engine,
+    encoding_format: "float",
   });
-
-  // Check if the request was successful
-  if (!response.ok) {
-    throw new Error(`Error: ${response.statusText}`);
-  }
+  console.log('created embeddings for these many pages',embeddingsResponse.data.length)
 
   // Parse the JSON response
-  dataemb = await response.json();
-  console.log(dataemb.embeddings.length)
+  dataemb = embeddingsResponse;
 }catch(error){
   console.error('Failed to fetch embeddings:', error);
   return res.status(400).json({ error: 'Open ai embedding error', message:'Open ai embedding error' });
@@ -177,12 +128,12 @@ try {
 
 
 const pageArray = []
-for (let i = 0; i < dataemb.embeddings.length; i++) {
+for (let i = 0; i < dataemb.data.length; i++) {
   const newPage = {
-    document:  mongoResponse.result.docuId,                // Document ID
+    document:  mongoResponse.docuId,                // Document ID
     pagenumber: i.toString(),        // Page Number as string
-    embedding: dataemb.embeddings[i].embedding, // Embedding ID
-    userid: userid ,                  // User ID
+    embedding: dataemb.data[i].embedding, // Embedding ID
+    userid: userId ,                  // User ID
     content: test[i],               // Page Text
    };
 pageArray.push(newPage);

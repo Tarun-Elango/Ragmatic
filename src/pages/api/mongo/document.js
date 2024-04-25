@@ -1,8 +1,6 @@
-import connectDB from '../../helper/mongodb';
-import Document from '../../models/Document';
-import { middleware } from "../../middleware/middleware";
-import Mes from '../../models/Mes';
-import Chat from '../../models/Chat'
+import connectDB from '../../../helper/mongodb';
+import Document from '../../../models/Document';
+import { middleware } from "../../../middleware/middleware";
 const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
   
@@ -58,66 +56,30 @@ export default async function handler(req, res) {
     }
 }
 
-
-
    else if (req.method === 'DELETE'){
     try {
         const { docId, docName } = req.body;
-    
-        // const index = pinecone.index('jotdown')
-        // // Delete embeddings from Pinecone
-        // await index.namespace(docName).deleteAll();
+        console.log('-----------------------------')
+        console.log('deleting pages')
         const { data, error } = await supabase
         .from('pages')
         .delete()
         .match({ document: docId });
 
-    if (error) {
-        console.error('Error deleting pages:', error);
-        return res.status(500).json({ success: false, message: 'Error deleting pages' });
-    } else {
-        console.log('Deleted pages:', data);
-    }
-
-
-        console.log('-----------------------------')
-        console.log('deleting pages')
-
+        if (error) {
+            console.error('Error deleting pages:', error);
+            return res.status(500).json({ success: false, message: 'Error deleting pages' });
+        } else {
+            console.log('Deleted pages:', data);
+        }
+        console.log('deleting document')  
         // Delete the document
         const result = await Document.deleteMany({ docuId: docId });
         if (result.deletedCount === 0) {
             return res.status(404).json({ success: false, message: 'No documents found with the specified docId' });
           }
-        console.log('deleting pinecone')
         console.log('mongo document deleted',result)
         console.log('-----------------------------')
-       // get all chats for doc
-        const chats = await Chat.find({ document: docId });
-        //delete the chat and its messages
-        console.log('deleting Chat')
-        for (const chat of chats) {
-          const chatId = chat._id; // Assuming `_id` is the field that stores the chat ID
-          // Delete the chat
-          const deletedChat = await Chat.findByIdAndDelete(chatId);
-          console.log(deletedChat)
-          if (!deletedChat) {
-            return res.status(404).json({ success: false, message: 'Chat not found' });
-          }
-        
-          // Delete all associated messages
-          const test = await Mes.deleteMany({ chatID: chatId });
-          console.log("deleting chats messages")
-          console.log(test)
-        }
-        console.log('deleted chats and messages')
-
-        
-        // // Delete all pages associated with the document
-        // const pagesDelete = await Pages.deleteMany({ document: docId });
-        // console.log(pagesDelete)
-        
-    
-    
         res.status(200).json({ success: true, message: 'Document and related data deleted successfully' });
       } catch (error) {
         res.status(500).json({ success: false, message: 'Server error', error: error.message });
