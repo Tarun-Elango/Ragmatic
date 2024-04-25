@@ -1002,6 +1002,15 @@ const toggleCalculator = () => {
     setTextAreaRows(numberOfRows);
   };
 
+  const chatRef = useRef(null);
+
+  useEffect(() => {
+    if (chatRef.current){
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+    
+  }, [messageList]); // re-run the effect whenever messageList changes
+  
   const [textAreaRows, setTextAreaRows] = useState(2);
 
   useEffect(() => {
@@ -1239,7 +1248,9 @@ if (user){
                   </div>
 
                   {/* Messages Container */}
-                  <div style={{
+                  <div
+                   ref={chatRef}
+                   style={{
                     overflowY: 'auto',
                     flex: 1,
                     overflowX: 'hidden',

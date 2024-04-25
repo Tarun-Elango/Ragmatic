@@ -43,67 +43,53 @@ return(<>
 </Head>
 
 <div className={styles.container}>
-    <header className={styles.header}>
-    <a>
+  {/* Header Component */}
+  <header className={styles.header}>
+    <a href="/" aria-label="Home">
       <Image
-        src={logo} // Path to your image in the public folder
-        width="50" // Set the width of the image similar to the SVG width
-        height="50" // Set the height of the image similar to the SVG height
-        alt=""
-        style={{
-          paddingBottom:'5vh',
-          display: 'block', // Ensures the image is a block-level element, similar to the default SVG behavior
-          maxWidth: '100%', // Ensures the image scales within its container
-          height: 'auto', // Maintains aspect ratio
-          stroke: 'currentColor', // SVG property, not applicable to bitmap images but kept for consistency
-          strokeWidth: '2', // SVG property, not applicable to bitmap images but kept for consistency
-          strokeLinecap: 'round', // SVG property, not applicable to bitmap images but kept for consistency
-          strokeLinejoin: 'round', // SVG property, not applicable to bitmap images but kept for consistency
-          color: 'red', // Assuming you want to apply a red color filter to your image, though this may not have the desired effect without further CSS or SVG filters
-          className: 'h-8 w-8 text-red-500' // Tailwind CSS classes for height, width, and text color, which might not apply directly to images
-        }}
+        src={logo}
+        width="50"
+        height="50"
+        alt="Ragmatic Logo"
+        className={styles.logo}
       />
     </a>
-
-    <h1 className={styles.h1Bold} >Ragmatic</h1>
+    <h1 className={styles.h1Bold}>Ragmatic</h1>
     <Tooltip placement="bottom" title={about}>
-      <InfoCircleOutlined style={{ fontSize: '24px', paddingBottom:'5vh'}} onClick={()=>setIsAboutGuestOpen(true)}/>
+      <button 
+        aria-label="About Ragmatic"
+        className={styles.infoButton}
+        onClick={() => setIsAboutGuestOpen(true)}>
+        <InfoCircleOutlined />
+      </button>
     </Tooltip>
   </header>
-  <main className={styles.mainclassBox}>
-    <h2 className = {styles.boxWords}>Resource-Tailored AI ChatBot.</h2>
-    <p className="mb-4">
-      <Tooltip placement="bottom" title={custom}>
-        Upload Resources & Get Your Custom AI Assistant.
-      </Tooltip>
-    </p>
-    <p className="mb-4">
-      <Tooltip placement="bottom" title={vanilla}>
-        Includes Vanilla AI Chatbot
-      </Tooltip>
-    </p>
-    <p className="mb-6">Supported file types: pdf, word, text file, text input, Youtube videos, website URLs</p>
 
+  {/* Main Content Component */}
+  <main className={styles.mainclassBox}>
+    <h2 className={styles.boxWords}>Resource-Tailored AI ChatBot.</h2>
+    <p className={styles.description}>
+      Upload resources & get your custom AI assistant.
+    </p>
+    <p className={styles.supportedTypes}>Supported file types: pdf, word, text file, text input, YouTube videos, website URLs</p>
     <div className={styles.buttonBox}>
       <button className={styles.loginButton} onClick={handleLogin}>
         Login to get started
       </button>
     </div>
   </main>
-  <footer className={styles.foot}>
-  <div className={styles.shimmercontainer}>
- 
-  
-</div>
 
+  {/* Footer Component */}
+  <footer className={styles.foot}>
     <div className={styles.footBox}>
-      <p>Hosted on GCP</p>
-      
-      <h3 className={styles.poweredText}>  Powered by OpenAI</h3> 
-      <h3 > <em> By Tarun Elango</em></h3> 
+      <p > Hosted on GCP</p>
+      <h3 className={styles.poweredText}>Powered by OpenAI</h3> 
+      <h3 className={styles.author}><em>By Tarun Elango</em></h3> 
     </div>
   </footer>
 </div>
+
+
 {isAboutGuestOpen && (
   <AboutModal
       hideAboutModal={() => setIsAboutGuestOpen(false)}

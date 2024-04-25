@@ -119,6 +119,7 @@ export default async function handler(req, res) {
             - If no such message is found, ignore the previous relevant message.`;
         
         console.log(pmt.length)
+        //console.log(pmt)
         res.status(200).json(pmt);
     } catch (err) {
         console.error(err);
