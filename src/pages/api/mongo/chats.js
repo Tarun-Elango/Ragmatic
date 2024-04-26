@@ -23,13 +23,17 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
         try {
           const { userID } = req.query;
+          
           if (!userID) {
+            console.log('All fields not present for chat get')
             return res.status(400).json({ success: false, message: 'Missing userID or document' });
           }
-    
+          console.log('Request to get chats for :', userID)
           const chats = await ChatV2.find({ userID });
+          console.log("returning Chats back to client")
           res.status(200).json({ success: true, data: chats });
         } catch (error) {
+          console.log("there was an error",error)
           res.status(500).json({ success: false, message: 'Server Error', error: error.message });
         }
       } 
@@ -37,14 +41,19 @@ export default async function handler(req, res) {
       else if (req.method === 'POST') {
         try {
           const { userID,  chatName } = req.body;
+          
           if (!userID ||  !chatName) {
+            console.log("all fields not present for chat post")
             return res.status(400).json({ success: false, message: 'Missing required fields' });
           }
-        const document = ["none"]
+          console.log(`${userID} wants to create a new chat with name ${chatName}`)
+          const document = ["none"]
           const newChat = new ChatV2({ userID, document, chatName });
           const savedChat = await newChat.save();
+          console.log("chat saved and returning new chat back to client")
           res.status(201).json({ success: true, data: savedChat });
         } catch (error) {
+          console.log("there was an error",error)
           res.status(500).json({ success: false, message: 'Server Error', error: error.message });
         }
       } 
@@ -54,25 +63,30 @@ else if (req.method === 'DELETE') {
           const { chatId } = req.query;
 
           if (!chatId) {
+            console.log("all fields not present for chat delete")
             return res.status(400).send('chatId is required');
-        }
+          }
+
+          console.log(`${chatId} is requested to be deleted`)
           // Delete the chat
           const deletedChat = await ChatV2.findByIdAndDelete(chatId);
           if (!deletedChat) {
+            console.log(`${chatId} not found`)
             return res.status(404).json({ success: false, message: 'Chat not found' });
           }
+          console.log('deleted all chats')
     
           // Delete all associated messages
           await Mes.deleteMany({ chatID: chatId });
+          console.log(`deleted all messages related to chat ${chatId}`)
 
           // delete rows from supabase where chatid matches
           const { error } = await supabase
               .from('vector_embeddings')
               .delete()
               .eq('chat_id', chatId);
-
           if (error) {
-              console.error('Error deleting rows:', error);
+              console.error('Error deleting rows from supabase for chatvector:', error);
               return res.status(500).send('Failed to delete rows');
           }
 
@@ -80,6 +94,7 @@ else if (req.method === 'DELETE') {
     
           res.status(200).json({ success: true, message: 'Chat and associated messages deleted, and rows from supabase' });
         } catch (error) {
+          console.log("there was an error",error)
           res.status(500).json({ success: false, message: 'Server Error', error: error.message });
         }
       } else {

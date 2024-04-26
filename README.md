@@ -23,3 +23,4 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 commands to uplaod image to artifact registry
 
 gcloud builds submit --region=us-central1 --tag us-central1-docker.pkg.dev/jotdown-415202/ragmatic-base/newimagename:tag
+gcloud builds submit --region=us-central1 --tag us-central1-docker.pkg.dev/jotdown-415202/ragmatic-base/ragmatic:latest
