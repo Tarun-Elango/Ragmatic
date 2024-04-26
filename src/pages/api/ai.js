@@ -24,18 +24,6 @@ export default async function handler(req, res) {
       console.log(docListUserSelected)
 
     try {
-        //////////////////////////get client accesstoken from auth0
-        const postData = `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"${process.env.AUTH0_AUD}","grant_type":"client_credentials"}`
-        const headers = {
-            'Content-Type': 'application/json',
-        }
-
-        const response = await axios.post(process.env.AUTH0_TOKEN, postData, { headers });
-
-        // Extract the data from the response
-        const data = response.data;
-        const accessToken = data.access_token // this has the accesstoken
-
         // get the closest vectors from supabase
         const startTime = performance.now();
         let responsePineConeList=[]
@@ -85,7 +73,7 @@ export default async function handler(req, res) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`
+                'Authorization': `Bearer ${process.env.SECRET}`
             },
             body: JSON.stringify(rerankData),
             });

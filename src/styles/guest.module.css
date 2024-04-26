@@ -57,11 +57,18 @@
   font-weight: bold;
   color: white;
 }
-.description, .supportedTypes, .third {
+.description, .supportedTypes {
   color: cornsilk;
   margin-bottom: 1rem;
   margin-top: 5vh;
 }
+.third {
+  color: cornsilk;
+  margin-bottom: 1rem;
+  margin-top: 5vh;
+}
+
+
 .buttonBox {
   display: flex;
   justify-content: center;

@@ -7,20 +7,31 @@ import { useUser } from '@auth0/nextjs-auth0/client';
 import OpaqueLoading from '../OpaqueLoading';
 
 function UploadModal(props){
+  const {user, error, isLoading } = useUser();
 
   const [inputTextUpload, setInputTextUpload] = useState('');
   const [inputTextUploadHeader, setinputTextUploadHeader] = useState('');
   const [inputURL, setinputURL] = useState('');
   const [inputURLHeader, setinputURLHeader] = useState('');
+  const [visible, setVisible] = useState(true)
+  const [file, setFile] = useState(null);
+  const [pdfText, setPdfText] = useState('');
+  const [uploadResponse, setUploadResponse] = useState(null)
+  const [isManualLoading, setManualLoading] = useState(false);
+  const [buttonType, setButtonType]= useState('')
+
+  const fileInputRef = useRef(null);
+
   const { TextArea } = Input;
   const { Title } = Typography;
   const { Panel } = Collapse;
 
-  // Custom expand icon for the Collapse component
+  // Custom expand icon for the open and close the component component
   const customExpandIcon = (panelProps) => {
     return panelProps.isActive ? <UpOutlined /> : <DownOutlined />;
   };
   
+  // show notification 
   const openNotification = (message, description) => {
     notification.open({
       message: <span style={{ color: 'red' }}><WarningOutlined />{message}</span>,
@@ -30,15 +41,8 @@ function UploadModal(props){
       },
     });
   };
-  const {user, error, isLoading } = useUser();
-  const [visible, setVisible] = useState(true)
-  const [file, setFile] = useState(null);
-  const [pdfText, setPdfText] = useState('');
-  const fileInputRef = useRef(null);
-  const [uploadResponse, setUploadResponse] = useState(null)
-  const [isManualLoading, setManualLoading] = useState(false);
-  const [buttonType, setButtonType]= useState('')
 
+  // function to remove file
   const onRemoveFile = () => {
     setFile(null);
     setPdfText('');
@@ -48,6 +52,7 @@ function UploadModal(props){
     }
   };
 
+  // function for back button
   const handleCancel=() => {
     if (buttonType===''){
       // if no button has been selected close modal
@@ -60,7 +65,8 @@ function UploadModal(props){
       }
   }
 
-  const handleOk = async (e) => { // function for pdf, word, text file
+  // function for pdf, word, text file
+  const handleOk = async (e) => { 
     e.preventDefault();
     if (!file) return;
     
@@ -101,7 +107,8 @@ function UploadModal(props){
 
   };
 
-  const manualText=async ()=>{ // function for text field
+  // function for text field
+  const manualText=async ()=>{ 
       setPdfText('');
       setFile(null);
       setManualLoading(true)
@@ -140,8 +147,8 @@ function UploadModal(props){
       
   }
     
-
-  const url= async()=>{ //function for url, youtube
+  //function for url, youtube
+  const url= async()=>{ 
       setPdfText('');
       setManualLoading(true)
       setUploadResponse('')
@@ -171,7 +178,7 @@ function UploadModal(props){
                 body: JSON.stringify(youtubeUrl)
               });
               const sample = await urlresponse.json();
-              console.log(sample.message);
+              // console.log(sample.message);
               setUploadResponse(sample.message);
               setinputURL('');
               setinputURLHeader('');
@@ -198,7 +205,6 @@ function UploadModal(props){
                 body: JSON.stringify(inputtext)
               });
               const dataurl = await urlresponse.json();
-              console.log(dataurl.message);
               setUploadResponse(dataurl.message);
               setinputURL('');
               setinputURLHeader('');
