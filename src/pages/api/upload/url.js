@@ -4,7 +4,7 @@ const createDOMPurify = require('dompurify');
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-import axios from 'axios';
+
 export default async function handler(req, res) {
     if (req.method === 'POST') {
 
@@ -14,7 +14,7 @@ export default async function handler(req, res) {
         res.status(400).json({ success: false, message: result.message });
         } else {
             try {
-
+                console.log('staring url api route')
                 const inputURLHeader = req.body.headerText;
                 const inputURL = req.body.bodyText;
                 const userid = req.body.userId
@@ -40,51 +40,55 @@ export default async function handler(req, res) {
                 // console.log(inputURLHeader)
                 // console.log(textContent);
                 // do the processing
+
+                /////////////////////////////////////////////////////////////// splitting doc
+                const chunk_size = 500
+                const chunk_overlap = 40
+                console.log(`splitting the doc chunk size ${chunk_size} and chunk overlap ${chunk_overlap}`)
                 const splitter = new RecursiveCharacterTextSplitter({
-                    chunkSize: 500, // Adjust chunk size as needed
-                    chunkOverlap: 40, // Adjust chunk overlap as needed
+                    chunkSize: chunk_size, // Adjust chunk size as needed
+                    chunkOverlap: chunk_overlap, // Adjust chunk overlap as needed
                   });
                   let test = await splitter.splitText(textForSplit)
                 //   const docOutput = await splitter.splitDocuments([
                 //     new Document({ pageContent: textContent }),
                 //   ]);
                   
-                  console.log(test.length, 'length of doc');
+                console.log(`Document split in ${test.length} pages`);
+
                   // get the current docs namespace
                     const customNamespace =`${userid}${inputURLHeader.replace("-", "").replace(/\s/g, "_")}`;;
                 
+
+                     /////////////////////////////////////////////////////////////////adding name to mongo
                     // add the doc to mongodb
                     let mongoResponse
-
                     try {
-                      //add doc to mongodb directly
-                      const existingUserDocu = await Document.findOne({
-                        userRefID: userid,
-                        docuName: customNamespace
-                      });
-                      if (existingUserDocu) {
-                          return res.status(200).json({ message:'File already exists' });
-                      } else {
-                          try {
-                              const document = new Document({userRefID:userid, docuName:customNamespace });
-                              await document.save();
-                              mongoResponse = document
-                             // return res.status(201).json({message:'Doc added success',result:document});
-                          } catch (error) {
-                              return res.status(500).json({ error: 'Error creating user\'s document' });
-                          }
-                      }
+                        //add doc to mongodb directly
+                        const existingUserDocu = await Document.findOne({
+                          userRefID: userid,
+                          docuName: customNamespace
+                        });
+                        if (existingUserDocu) {
+                          console.log('Document already exists in mongo db')
+                            return res.status(200).json({ message:'File already exists' });
+                        } 
+                          const document = new Document({userRefID:userid, docuName:customNamespace });
+                          await document.save();
+                          console.log('document saved to mongo')
+                          mongoResponse = document
+                              // return res.status(201).json({message:'Doc added success',result:document});
+            
                         } catch (error) {
+                          console.log("mongo error: ", error)
                           return res.status(400).json({ error: 'MongoDb error', message:'MongoDb error' });
                         }
 
 
-
-                    const requestBody ={
-                        "sentences":test
-                      }
+/////////////////////////////////////////////////////////////// get the embeddings of pages
                 let dataemb = null
                       try {
+                        console.log('getting embedding for all pages')
                         const embeddingsResponse = await openaio.embeddings.create({
                           input: test,
                           model: 'text-embedding-3-small', // or another suitable engine,
@@ -94,14 +98,15 @@ export default async function handler(req, res) {
                       
                         // Parse the JSON response
                         dataemb = embeddingsResponse;
+                        console.log('got embedding for all pages')
                       }catch(error){
                         console.error('Failed to fetch embeddings:', error);
                         return res.status(400).json({ error: 'Open ai embedding error', message:'Open ai embedding error' });
                       }
-                
-                
                     //console.log(dataemb.embeddings[0].embedding)
                 
+                    /////////////////////////////////////////////////////////////// storing pages to supabase
+                    console.log('creating array of pages, to be stored in supabase')
                     const pageArray = []
                     for (let i = 0; i < dataemb.data.length; i++) {
                       const newPage = {
@@ -120,10 +125,13 @@ export default async function handler(req, res) {
                 
                     if (error) {
                         console.error('Error inserting pages:', error);
-                    } else {
-                        console.log('Inserted pages:', pagesdata);
-                    }
+                        // TODO: delete the document from mongo
+                        return res.status(400).json({ error: 'Supabase error', message:'Error storing your file' });
+                    } 
            
+                    console.log('pages stored in supabase, of size', pageArray.length)
+                    console.log('Inserted pages:', pagesdata);
+
                 res.status(200).json({
                     message: 'Website content processed',
                     });
