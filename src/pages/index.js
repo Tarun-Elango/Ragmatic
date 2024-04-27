@@ -998,7 +998,7 @@ const toggleCalculator = () => {
     // below handles increasing text are
     const inputText = event.target.value;
     const lines = inputText.split(/\r*\n/);
-    const numberOfRows = Math.min(Math.max(lines.length, 2), 6); // Ensure the number of rows is between 2 and 6
+    const numberOfRows = Math.min(Math.max(lines.length, 3), 6); // Ensure the number of rows is between 2 and 6
     setTextAreaRows(numberOfRows);
   };
 
@@ -1018,7 +1018,7 @@ const toggleCalculator = () => {
       if (window.innerWidth < 800) {
         setTextAreaRows(1);
       } else {
-        setTextAreaRows(2);
+        setTextAreaRows(3);
       }
     }
     // Set the initial rows value based on current window size
@@ -1053,6 +1053,8 @@ if (user){
       </Head>
 
       <div style={{ display: 'flex', height: '100dvh', backgroundColor: '#21262d', overflow:'hidden'}}>
+     
+{/* Left side*/}
       {isLeftColumnVisible && (
       <div style={{ width: '25vh', display: 'flex', flexDirection: 'column', backgroundColor: '#36373A', padding: '10px',height: '100dvh', boxSizing: 'border-box',justifyContent: 'space-between',fontSize:'0.8em'}}>
       <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center',height: '100%',overflow: 'hidden' }}>
@@ -1060,7 +1062,7 @@ if (user){
               style={{ display:'flex', flexDirection:'column', justifyContent:'center', fontSize:'1.5em'}} 
               onClick={onNewChat}
           />
-          {/* First List */}
+{/* First List */}
           <ul style={{ listStyle: 'none', padding: '0 1px',overflowY: 'auto', height: 'calc(50% - 30px)',marginTop: '10px', overflowX: 'hidden',}}>
                 {fetchingDocs ? <ChatLoading/> : <>
                 {Array.isArray(chatArray) && chatArray.slice().reverse().map((chat, index) => (
@@ -1077,11 +1079,7 @@ if (user){
                           </a>
                           <div 
                               onClick={() => deletchat(chat._id)}
-                              style={{
-                                  padding: '1px 2px',
-                                  cursor: 'pointer',
-                                  transition: 'background-color 0.3s',
-                              }}
+                              style={{padding: '1px 2px',cursor: 'pointer',transition: 'background-color 0.3s',}}
                               onMouseEnter={(e) => e.target.style.backgroundColor = '#21262d'}
                               onMouseLeave={(e) => e.target.style.backgroundColor = '#333'}
                           >
@@ -1094,7 +1092,7 @@ if (user){
               }
           </ul>
           <hr style={{ border: '1px solid white' }} />
-          {/* Second List */}
+{/* Second List */}
           <div style={{ display: 'flex', alignItems: 'center', marginBottom:'10px', marginTop:'2vh' }}>
               {docArray.length==0 ? <span>Upload resources</span>:<span>Select resources for AI to consider</span>}
             
@@ -1125,9 +1123,15 @@ if (user){
            )}
         </div>)}
 
-        {/* Main Content */}
-            <div style={{flex:1,height:'100dvh',  display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#21262d', padding: '10px', overflow:'hidden' }}>
+{/* RIght side*/}
+            <div style={{flex:1,height:'100dvh',  display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#21262d', padding: '7.5px', overflow:'hidden' }}>
+              
+{/* Header*/}         
               <div style={{marginTop:'10px', display: 'flex', alignItems: 'center', width: '100%', height:'7.5dvh' }}>
+                {!isLeftColumnVisible && (
+                                <Tooltip placement="right" title={openChat}>
+                              <DoubleRightOutlined onClick={handleChatBackButtonClick} style={{marginRight:'10px'}}/></Tooltip>
+                              )}
                   <h3 style={{ flex: '1', marginRight: '15px', fontSize:'1.2em', color:'#fa7970'}}><strong>Ragmatic</strong><Tooltip placement="bottom" title={text}>
                           <InfoCircleOutlined style={{marginLeft:'15px'}} onClick={()=>setIsAboutOpen(true)}/>
                       </Tooltip>
@@ -1136,8 +1140,10 @@ if (user){
                   <Tooltip placement="bottom" title={newUpload}><Button onClick={()=>setIsUploadOpen(true)} style={{ backgroundColor: '#fa7970',marginLeft:'10px', border:'black'}}>New Upload</Button></Tooltip>
                   <Menu onClick={onClick}  mode="horizontal" items={accounts} style={{backgroundColor:'transparent', color:'white', marginRight:'15px'}} selectedKeys={[null]}/>
               </div>
-              <div style={{height: '75dvh',display: 'flex',flexDirection: 'column',borderRadius: '10px',backgroundColor: '#36373A',marginTop: '15px',border: '1px solid black',padding: '8px',width: '100%',marginRight: '0px'}}>
-                  {/* Icon Row */}
+
+{/* Messages Container */}
+              <div style={{height: '77.5dvh',display: 'flex',flexDirection: 'column',borderRadius: '10px',backgroundColor: '#36373A',marginTop: '15px',border: '1px solid black',padding: '8px',width: '100%',marginRight: '0px'}}>
+{/* Icon Row */}
                   <div style={{display: 'flex',alignItems: 'center', marginBottom: '10px', paddingLeft: '10px' }}>
                     <Tooltip placement="bottom" title={search}>
                     <SearchOutlined
@@ -1153,7 +1159,7 @@ if (user){
                   </Tooltip> 
                   </div>
 
-                  {/* Messages Container */}
+{/* Main chat box */}
                   <div
                    ref={chatRef}
                    style={{overflowY: 'auto',flex: 1,overflowX: 'hidden',paddingRight: '15px'}}>
@@ -1180,7 +1186,8 @@ if (user){
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '12.5dvh' }}>
+{/*footer section */}
+                <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '15dvh' }}>
                   <TextArea
                     value={inputText}
                     onChange={handleInputChangeTextArea}
@@ -1189,7 +1196,7 @@ if (user){
                     style={{height: '12.5vh',backgroundColor: '#36373A',color: '#FFFFFF',resize: 'none',overflowY: 'auto', }}
                     autoSize={{ minRows: textAreaRows, maxRows: textAreaRows }}
                   />
-                  
+                  {isAiLoading ? <ChatLoading/> :<></>}
                   {isAiLoading ? (<Button
                     onClick={handleStopButtonClick}
                     style={{ marginLeft: '1vw', backgroundColor: '#eb2d3a',border: 'none',  borderRadius: '50px', fontSize: '1em', height: '5vh', padding: '1vh 2vw', boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center',  whiteSpace: 'nowrap' }}
@@ -1202,56 +1209,11 @@ if (user){
                   >
                     Ask
                   </Button>)}
-                </div>
-                    
-                    
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', width: '100%', height: '5dvh', padding: '0 10px', }}>
-                      <style jsx>{`
-                        h2 {
-                          flex: 1; text-align: center;margin-left: 24px; margin-right: 24px;color: white;white-space: nowrap;overflow: hidden;margin-top:3px}
-                        .icon {
-                          font-size: 1em; /* Default size */
-                        }
-                        h2 span {
-                          color: #2dba4e;
-                        }
-                        /* Media Query for screens with max-width of 600px */
-                        @media (max-width: 600px) {
-                          h2 {
-                            font-size: 0.7em; /* Adjust the font size as needed */
-                          }
-                          .icon {
-                            font-size: 0.7em; margin-bottom:-10px
-                          }
-                        }
-                      `}</style>
-                            <div style={{ width: '10%' }} className="icon">
-                              
-                              {!isLeftColumnVisible && (
-                                <Tooltip placement="right" title={openChat}>
-                              <DoubleRightOutlined onClick={handleChatBackButtonClick} /></Tooltip>
-                              )}
-                              </div>
-                              <div style={{ width: '90%', display: 'flex', justifyContent: 'center',}}>
-                                  <footer style={{ width: '100%',color: 'white', textAlign: 'center',borderColor:'white'}}>
-                                      <select
-                                        style={{backgroundColor:'#21262d',borderColor:'white'}}
-                                        defaultValue="option1"
-                                        onChange={(e) => console.log(e.target.value)} // Handle change
-                                        size="1" // Default size, it will expand to show all options when clicked
-                                      >
-                                        <option value="option1" >gpt-3.5-turbo</option>
-                                        <option value="option2" disabled>gpt-4-turbo</option>
-                                      </select>
-                                  </footer>
-                                {isAiLoading ? <ChatLoading/> :<></>}
-                            </div>
-                          </div>
-
-                        
-                      </div>
-                    </div>
+                </div>        
+              </div>
+            </div>
           
+{/*modal section */}
             {isUploadOpen && (
                   <UploadModal
                       isContactOpen={isUploadOpen}
@@ -1393,3 +1355,17 @@ export const getServerSideProps = async (context) => {
         };
     }
 }
+
+
+/**
+ * <select
+                                        style={{backgroundColor:'#21262d',borderColor:'white'}}
+                                        defaultValue="option1"
+                                        onChange={(e) => console.log(e.target.value)} // Handle change
+                                        size="1" // Default size, it will expand to show all options when clicked
+                                      >
+                                        <option value="option1" >gpt-3.5-turbo</option>
+                                        <option value="option2" disabled>gpt-4-turbo</option>
+                                      </select>
+ * 
+ */
