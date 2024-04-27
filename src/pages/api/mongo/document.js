@@ -27,7 +27,7 @@ export default async function handler(req, res) {
         return res.status(400).send('userRefID is required');
       }
         try {
-            console.log("fetching all docs for user with user if: ", userRefID)
+            console.log("fetching all docs for user with user id: ", userRefID)
             const usersDocumentList = await Document.find({ userRefID: userRefID });
             if (usersDocumentList.length === 0) {
               console.log("user has no docs")

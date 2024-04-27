@@ -101,7 +101,7 @@ export default async function handler(req, res) {
     
 
     /////////////////////////////////////////////////////////////// storing pages to supabase
-    console.log('creating array of pages, to be stored in supabas')
+    console.log('creating array of pages, to be stored in supabase')
     const pageArray = []
     for (let i = 0; i < dataemb.data.length; i++) {
       const newPage = {
