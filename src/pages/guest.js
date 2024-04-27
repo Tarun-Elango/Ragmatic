@@ -7,6 +7,7 @@ import styles from '../styles/guest.module.css'
 import logo from '../../public/logo.png'
 import Image from 'next/image';
 import AboutModal from '../components/modals/AboutModal'
+import UpgradeModal from '../components/modals/UpgradeModal'
 
 export default function Guest () {
   const router = useRouter();
@@ -33,6 +34,7 @@ export default function Guest () {
   const vanilla =<span>Have a regular conversation with an AI.</span>
   const custom = <span>AI will answer queries, based on the uploaded resource.</span>
   const [isAboutGuestOpen, setIsAboutGuestOpen] = useState(false)
+  const [isPricingOpen, setIsPricingOpen] = useState(false)
 return(<>
 
 <Head>
@@ -73,12 +75,31 @@ return(<>
     </p>
     <p className={styles.supportedTypes}>Supported file types: PDF, Word, Text file, Text input, YouTube videos, Website URLs, Images</p>
     <p className={styles.third}>AI Equipped with Internet access and a built-in calculator</p>
-    <div className={styles.buttonBox}>
+
+  </main>
+
+  <div className={styles.boxesContainer}>
+    {/* New Box 1 */}
+    <div className={styles.infoBox}>
+      {/* Content for new box 1 goes here */}
+      <h2 style={{color:'	#dcacf2'}}>Chat Interface</h2>
+      <br/>
+      <h3 style={{color:'	#dcacf2'}}>Start with 20 free Credits <InfoCircleOutlined onClick={()=>setIsPricingOpen(true)} /></h3> 
+
       <button className={styles.loginButton} onClick={handleLogin}>
         Login to get started
       </button>
     </div>
-  </main>
+
+    {/* New Box 2 */}
+    <div className={styles.infoBox}>
+      {/* Content for new box 2 goes here */}
+      <h3 style={{color:'	#b1e8fd'}}>API</h3>
+      <br/>
+
+      <h4 style={{color:'	#b1e8fd'}}> <em>Coming soon !!!</em></h4>
+    </div>
+  </div>
 
   {/* Footer Component */}
   <footer className={styles.foot}>
@@ -96,5 +117,19 @@ return(<>
       hideAboutModal={() => setIsAboutGuestOpen(false)}
   /> 
 )}
+
+{isPricingOpen && (
+  <UpgradeModal
+  hideUpgradeModal={()=>setIsPricingOpen(false)}
+  />
+)}
 </>)
 }
+
+/**
+     <div className={styles.buttonBox}>
+      <button className={styles.loginButton} onClick={handleLogin}>
+        Login to get started
+      </button>
+    </div>
+ */

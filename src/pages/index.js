@@ -267,6 +267,7 @@ const toggleCalculator = () => {
   const handleButtonClick = async () => {
     if (window.innerWidth < 800) {
       setTextAreaRows(1);
+      
     } else {
       setTextAreaRows(2);
     }
@@ -730,7 +731,7 @@ const toggleCalculator = () => {
           children: [
 
                 {
-                  label: 'Account & Settings',
+                  label: 'Account',
                   key: 'setting:1',
                 },
                 {
@@ -1017,6 +1018,7 @@ const toggleCalculator = () => {
     function handleResize() {
       if (window.innerWidth < 800) {
         setTextAreaRows(1);
+        setIsLeftColumnVisible(false)
       } else {
         setTextAreaRows(3);
       }
@@ -1130,14 +1132,15 @@ if (user){
               <div style={{marginTop:'10px', display: 'flex', alignItems: 'center', width: '100%', height:'7.5dvh' }}>
                 {!isLeftColumnVisible && (
                                 <Tooltip placement="right" title={openChat}>
-                              <DoubleRightOutlined onClick={handleChatBackButtonClick} style={{marginRight:'10px'}}/></Tooltip>
+                              <DoubleRightOutlined onClick={handleChatBackButtonClick} style={{marginRight:'15px'}}/></Tooltip>
                               )}
                   <h3 style={{ flex: '1', marginRight: '15px', fontSize:'1.2em', color:'#fa7970'}}><strong>Ragmatic</strong><Tooltip placement="bottom" title={text}>
                           <InfoCircleOutlined style={{marginLeft:'15px'}} onClick={()=>setIsAboutOpen(true)}/>
                       </Tooltip>
                   </h3>
+                  <Tooltip placement="right" title={"1 Credit = 1 Query, Upgrade for unlimited credits"}><h3 style={{marginRight:'15px', color:'orange'}}><em>20 Credits left</em></h3></Tooltip>
                   <SettingOutlined />
-                  <Tooltip placement="bottom" title={newUpload}><Button onClick={()=>setIsUploadOpen(true)} style={{ backgroundColor: '#fa7970',marginLeft:'10px', border:'black'}}>New Upload</Button></Tooltip>
+                  <Tooltip placement="bottom" title={newUpload}><Button onClick={()=>setIsUploadOpen(true)} style={{ backgroundColor: '#fa7970',marginLeft:'15px', border:'black'}}>New Upload</Button></Tooltip>
                   <Menu onClick={onClick}  mode="horizontal" items={accounts} style={{backgroundColor:'transparent', color:'white', marginRight:'15px'}} selectedKeys={[null]}/>
               </div>
 

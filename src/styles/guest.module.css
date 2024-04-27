@@ -41,14 +41,13 @@
   transform: scale(1.1); /* Enlarges the button slightly on hover or focus */
 }
 
-
 .mainclassBox {
   background-color: #36373A;
   padding: 3rem;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin: 5vh auto; /* Increased top margin */
-  width: 90vw;
+  margin: 3vh auto; /* Increased top margin */
+  width: 81vw;
   box-sizing: border-box; /* Ensures padding is included in width */
 }
 
@@ -59,13 +58,13 @@
 }
 .description, .supportedTypes {
   color: cornsilk;
-  margin-bottom: 1rem;
-  margin-top: 5vh;
+  margin-bottom: 0.5rem;
+  margin-top: 2vh;
 }
 .third {
   color: cornsilk;
-  margin-bottom: 1rem;
-  margin-top: 5vh;
+  margin-bottom: 0.5rem;
+  margin-top: 2vh;
 }
 
 
@@ -86,6 +85,30 @@
   background-color: #c53030;
   transform: translateY(-2px);
 }
+
+
+.boxesContainer {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 2vh; /* Spacing below the boxes before the button */
+}
+
+.infoBox {
+  display: flex;
+  flex-direction: column; /* Ensures elements stack vertically */
+  align-items: center; /* Center aligns the children horizontally */
+  background-color: #36373A; /* Slightly different background for contrast */
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 40vw; /* Adjusted width for side by side layout */
+  box-sizing: border-box;
+  color: cornsilk; /* Text color */
+  margin: 1vh; /* Spacing around the boxes */
+  flex: 1; /* Flex grow to fill available space */
+  justify-content: center;
+}
+
 .foot {
   border-radius: 10px;
   margin-top: auto;
@@ -121,5 +144,13 @@
   .footBox {
     flex-direction: column;
     text-align: center;
+  }
+
+  .boxesContainer {
+    flex-direction: column;
+  }
+  .infoBox {
+    width: 80vw; /* Full width on smaller screens */
+    margin-bottom: 2vh;
   }
 }
