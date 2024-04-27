@@ -3,6 +3,11 @@ import { middleware } from "../../../middleware/middleware";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+import Document from '../../../models/Document';
+import OpenAI from 'openai';
+const openaio = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  });
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
@@ -40,7 +45,7 @@ export default async function handler(req, res) {
             chunkSize: chunk_size, // Adjust chunk size as needed
             chunkOverlap: chunk_overlap, // Adjust chunk overlap as needed
           });
-          let test = await splitter.splitText(textForSplit)
+          let test = await splitter.splitText(combinedText)
         //   const docOutput = await splitter.splitDocuments([
         //     new Document({ pageContent: combinedText }),
         //   ]);

@@ -12,8 +12,11 @@ const mammoth = require("mammoth");
 const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 import { middleware } from "../../../middleware/middleware";
-
-
+import Document from '../../../models/Document';
+import OpenAI from 'openai';
+const openaio = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  });
 // const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small') 
 const upload = multer({
   storage: multer.memoryStorage(),

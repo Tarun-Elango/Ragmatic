@@ -93,6 +93,7 @@ export default async function handler(req, res) {
         console.log('got embedding for all pages')
       }catch(error){
         console.error('Failed to fetch embeddings:', error);
+        // TODO: delete the document from mongo
         return res.status(400).json({ error: 'Open ai embedding error', message:'Open ai embedding error' });
       }
 
