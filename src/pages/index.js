@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef} from 'react';
 import { useRouter } from 'next/router';
-import {  UserOutlined, InfoCircleOutlined, PlusCircleOutlined, DoubleLeftOutlined,DoubleRightOutlined, RocketOutlined, DeleteOutlined,WarningOutlined,SearchOutlined, CalculatorOutlined, SettingOutlined ,CloudUploadOutlined } from '@ant-design/icons';
-import { Button, Input,Tooltip, Menu,List,Modal,notification, Switch, Checkbox  } from 'antd';
+import {  UserOutlined, InfoCircleOutlined, PlusCircleOutlined, DoubleLeftOutlined,DoubleRightOutlined,  DeleteOutlined,WarningOutlined,SearchOutlined, CalculatorOutlined, SettingOutlined } from '@ant-design/icons';
+import { Button, Input,Tooltip, Menu,List,Modal,notification, Checkbox  } from 'antd';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import Head from 'next/head'
 import LoadingComponent from '../components/LoadingComponent'
@@ -1054,57 +1054,20 @@ if (user){
 
       <div style={{ display: 'flex', height: '100dvh', backgroundColor: '#21262d', overflow:'hidden'}}>
       {isLeftColumnVisible && (
-      <div style={{ 
-          width: '25vh', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          backgroundColor: '#36373A', 
-          padding: '10px',
-          height: '100dvh', 
-          boxSizing: 'border-box',
-          justifyContent: 'space-between',
-          fontSize:'0.8em'
-      }}>
-      <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          justifyContent: 'center',
-          height: '100%',
-          overflow: 'hidden' 
-      }}>
+      <div style={{ width: '25vh', display: 'flex', flexDirection: 'column', backgroundColor: '#36373A', padding: '10px',height: '100dvh', boxSizing: 'border-box',justifyContent: 'space-between',fontSize:'0.8em'}}>
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center',height: '100%',overflow: 'hidden' }}>
           <PlusCircleOutlined 
               style={{ display:'flex', flexDirection:'column', justifyContent:'center', fontSize:'1.5em'}} 
               onClick={onNewChat}
           />
           {/* First List */}
-          <ul style={{ 
-                  listStyle: 'none', 
-                  padding: '0 1px',
-                  overflowY: 'auto', 
-                  height: 'calc(50% - 30px)', // Adjusted height to accommodate two lists
-                  marginTop: '10px', 
-                  overflowX: 'hidden',
-              }}>
+          <ul style={{ listStyle: 'none', padding: '0 1px',overflowY: 'auto', height: 'calc(50% - 30px)',marginTop: '10px', overflowX: 'hidden',}}>
                 {fetchingDocs ? <ChatLoading/> : <>
                 {Array.isArray(chatArray) && chatArray.slice().reverse().map((chat, index) => (
                   <li key={chat._id} style={{ margin: '5px 0' }}>
-                      <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          backgroundColor: '#333',
-                          borderRadius: '5px',
-                          padding: '2px 10px',
-                      }}>
+                      <div style={{display: 'flex',alignItems: 'center',backgroundColor: '#333',borderRadius: '5px',padding: '2px 10px',}}>
                           <a 
-                              style={{ 
-                                  flex: 1, 
-                                  cursor: 'pointer', 
-                                  color: 'white',
-                                  textDecoration: 'none',
-                                  padding: '2px 10px',
-                                  borderRadius: '5px',
-                                  transition: 'background-color 0.3s',
-                              }} 
+                              style={{ flex: 1, cursor: 'pointer', color: 'white',textDecoration: 'none',padding: '2px 10px',borderRadius: '5px',transition: 'background-color 0.3s',}} 
                               onMouseEnter={(e) => e.target.style.backgroundColor = '#21262d'}
                               onMouseLeave={(e) => e.target.style.backgroundColor = '#333'}
                               onClick={() => handleChatHistoryClick(chat._id)}
@@ -1138,43 +1101,18 @@ if (user){
 
             <SettingOutlined style={{ marginLeft: '10px' }} onClick={showModal}/>
           </div>
-          <ul style={{ 
-                  listStyle: 'none', 
-                  padding: '0 1px',
-                  overflowY: 'auto', 
-                  height: 'calc(50% - 30px)', // Adjusted height to accommodate two lists
-                  overflowX: 'hidden',
-              }}>
+          <ul style={{ listStyle: 'none', padding: '0 1px',overflowY: 'auto', height: 'calc(50% - 30px)',overflowX: 'hidden'}}>
               {fetchingDocs ? <ChatLoading/> : <>
                 {Array.isArray(filteredData) && filteredData.map((chat, index) => (
                   <li key={index} style={{ margin: '5px 0' }}>
-                      <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          backgroundColor: '#333',
-                          borderRadius: '5px',
-                          padding: '2px 10px',
-                      }}>
+                      <div style={{display: 'flex',alignItems: 'center',backgroundColor: '#333',borderRadius: '5px',padding: '2px 10px'}}>
                         <Checkbox style={{ marginRight: '1px'}} onChange={() => handleCheckboxChange(index)}></Checkbox>
                           <a 
-                              style={{ 
-                                  flex: 1, 
-                                  cursor: 'pointer', 
-                                  color: 'white',
-                                  textDecoration: 'none',
-                                  padding: '2px 10px',
-                                  borderRadius: '5px',
-                                  transition: 'background-color 0.3s',
-                              }} 
-                              // onMouseEnter={(e) => e.target.style.backgroundColor = '#21262d'}
-                              // onMouseLeave={(e) => e.target.style.backgroundColor = '#333'}
-                              //onClick={() => handleDocSelection(index)}
+                              style={{ flex: 1, cursor: 'pointer', color: 'white',textDecoration: 'none',padding: '2px 10px',borderRadius: '5px',transition: 'background-color 0.3s'}} 
                               title={filteredData[index]}
                           >
                               {filteredData[index].substring(0, 14)}
                           </a>
-    
-                          
                       </div>
                   </li>
                 ))}
@@ -1188,74 +1126,37 @@ if (user){
         </div>)}
 
         {/* Main Content */}
-        
             <div style={{flex:1,height:'100dvh',  display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#21262d', padding: '10px', overflow:'hidden' }}>
               <div style={{marginTop:'10px', display: 'flex', alignItems: 'center', width: '100%', height:'7.5dvh' }}>
                   <h3 style={{ flex: '1', marginRight: '15px', fontSize:'1.2em', color:'#fa7970'}}><strong>Ragmatic</strong><Tooltip placement="bottom" title={text}>
                           <InfoCircleOutlined style={{marginLeft:'15px'}} onClick={()=>setIsAboutOpen(true)}/>
                       </Tooltip>
                   </h3>
-                  
+                  <SettingOutlined />
                   <Tooltip placement="bottom" title={newUpload}><Button onClick={()=>setIsUploadOpen(true)} style={{ backgroundColor: '#fa7970',marginLeft:'10px', border:'black'}}>New Upload</Button></Tooltip>
                   <Menu onClick={onClick}  mode="horizontal" items={accounts} style={{backgroundColor:'transparent', color:'white', marginRight:'15px'}} selectedKeys={[null]}/>
               </div>
-
-
-
-              <div style={{
-                  height: '75dvh',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  borderRadius: '10px',
-                  backgroundColor: '#36373A',
-                  marginTop: '15px',
-                  border: '1px solid black',
-                  padding: '8px',
-                  width: '100%',
-                  
-                  marginRight: '0px'
-                }}>
+              <div style={{height: '75dvh',display: 'flex',flexDirection: 'column',borderRadius: '10px',backgroundColor: '#36373A',marginTop: '15px',border: '1px solid black',padding: '8px',width: '100%',marginRight: '0px'}}>
                   {/* Icon Row */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center', // Align items vertically
-                    marginBottom: '10px', // Space between icons and message area
-                    paddingLeft: '10px' // Padding to the left of the icons
-                  }}>
-
+                  <div style={{display: 'flex',alignItems: 'center', marginBottom: '10px', paddingLeft: '10px' }}>
                     <Tooltip placement="bottom" title={search}>
                     <SearchOutlined
                       onClick={toggleSearch}
-                      style={{
-                        marginRight: '35px',
-                        color: isSearchActive ? 'red' : 'inherit', // Change color when active
-                        cursor: 'pointer'
-                      }}
+                      style={{marginRight: '35px',color: isSearchActive ? 'red' : 'inherit', cursor: 'pointer' }}
                     />
                   </Tooltip>
                   <Tooltip placement="bottom" title={calculator}>
                     <CalculatorOutlined
                       onClick={toggleCalculator}
-                      style={{
-                        marginRight: '35px',
-                        color: isCalculatorActive ? 'red' : 'inherit', // Change color when active
-                        cursor: 'pointer'
-                      }}
+                      style={{marginRight: '35px',color: isCalculatorActive ? 'red' : 'inherit', cursor: 'pointer'}}
                     />
-                  </Tooltip>
-                  
-
+                  </Tooltip> 
                   </div>
 
                   {/* Messages Container */}
                   <div
                    ref={chatRef}
-                   style={{
-                    overflowY: 'auto',
-                    flex: 1,
-                    overflowX: 'hidden',
-                    paddingRight: '15px'
-                  }}>
+                   style={{overflowY: 'auto',flex: 1,overflowX: 'hidden',paddingRight: '15px'}}>
                     {messageList.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)).map((message, index) => {
                       const isUserMessage = message.type === 'user';
                       const messageSide = isUserMessage ? 'right' : 'left';
@@ -1267,25 +1168,10 @@ if (user){
 
                       return (
                         <div key={index} style={{ textAlign: messageSide }}>
-                          <div style={{
-                            color: senderColor,
-                            fontWeight: 'bold',
-                            marginBottom: '5px',
-                          }}>
+                          <div style={{color: senderColor,fontWeight: 'bold',marginBottom: '5px',}}>
                             {senderLabel}:
                           </div>
-                          <div style={{
-                            backgroundColor: isUserMessage ? '#f0f0f0' : '#24292e',
-                            color: isUserMessage ? 'black' : 'white',
-                            textAlign: 'left',
-                            padding: '10px',
-                            borderRadius: '10px',
-                            display: 'inline-block',
-                            maxWidth: '90%',
-                            marginLeft: isUserMessage ? '5%' : '0',
-                            marginRight: isUserMessage ? '0' : '5%',
-                            wordBreak: 'break-word'
-                          }} >  
+                          <div style={{backgroundColor: isUserMessage ? '#f0f0f0' : '#24292e',color: isUserMessage ? 'black' : 'white',textAlign: 'left',padding: '10px',borderRadius: '10px',display: 'inline-block',maxWidth: '90%',marginLeft: isUserMessage ? '5%' : '0',marginRight: isUserMessage ? '0' : '5%',wordBreak: 'break-word'}} >  
                             <FormattedMessage text={messageText} />
                           </div>
                         </div>
@@ -1294,57 +1180,24 @@ if (user){
                   </div>
                 </div>
 
-
                 <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '12.5dvh' }}>
                   <TextArea
                     value={inputText}
                     onChange={handleInputChangeTextArea}
                     placeholder="Start asking"
                     className="custom-placeholder"
-                    style={{
-                      height: '12.5vh',
-                      backgroundColor: '#36373A',
-                      color: '#FFFFFF',
-                      resize: 'none', // Disables manual resizing
-                      overflowY: 'auto',
-                    }}
+                    style={{height: '12.5vh',backgroundColor: '#36373A',color: '#FFFFFF',resize: 'none',overflowY: 'auto', }}
                     autoSize={{ minRows: textAreaRows, maxRows: textAreaRows }}
                   />
                   
                   {isAiLoading ? (<Button
                     onClick={handleStopButtonClick}
-                    style={{
-                      marginLeft: '1vw', // Relative to the width of the viewport
-                      backgroundColor: '#eb2d3a',
-                      border: 'none', // Assuming you want no border; change if needed
-                      borderRadius: '50px', // Large enough value to create pill shape
-                      fontSize: '1em', // Scales with the font size of the document
-                      height: '5vh', // Relative to the height of the viewport
-                      padding: '1vh 2vw', // Vertical padding relative to height, horizontal padding relative to width
-                      boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)', // Optional: adds a slight shadow for depth
-                      display: 'flex', // Enables the use of Flexbox for centering
-                      alignItems: 'center', // Centers content vertically within the button
-                      justifyContent: 'center', // Centers content horizontally within the button
-                      whiteSpace: 'nowrap' // Prevents the text from wrapping
-                    }}
+                    style={{ marginLeft: '1vw', backgroundColor: '#eb2d3a',border: 'none',  borderRadius: '50px', fontSize: '1em', height: '5vh', padding: '1vh 2vw', boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center',  whiteSpace: 'nowrap' }}
                   >
                     Stop
                   </Button>):(<Button
                     onClick={handleButtonClick}
-                    style={{
-                      marginLeft: '1vw', // Relative to the width of the viewport
-                      backgroundColor: '#7ce38b',
-                      border: 'none', // Assuming you want no border; change if needed
-                      borderRadius: '50px', // Large enough value to create pill shape
-                      fontSize: '1em', // Scales with the font size of the document
-                      height: '5vh', // Relative to the height of the viewport
-                      padding: '1vh 2vw', // Vertical padding relative to height, horizontal padding relative to width
-                      boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)', // Optional: adds a slight shadow for depth
-                      display: 'flex', // Enables the use of Flexbox for centering
-                      alignItems: 'center', // Centers content vertically within the button
-                      justifyContent: 'center', // Centers content horizontally within the button
-                      whiteSpace: 'nowrap' // Prevents the text from wrapping
-                    }}
+                    style={{marginLeft: '1vw', backgroundColor: '#7ce38b',border: 'none', borderRadius: '50px',fontSize: '1em',  height: '5vh', padding: '1vh 2vw', boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', whiteSpace: 'nowrap' }}
                     disabled={isButtonDisabled}
                   >
                     Ask
@@ -1352,41 +1205,23 @@ if (user){
                 </div>
                     
                     
-                    <div style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'flex-start', // Align items to the start
-                            width: '100%', // Ensure the div takes the full width of its container
-                            height: '5dvh', 
-                            padding: '0 10px', 
-                     
-                        }}><style jsx>{`
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', width: '100%', height: '5dvh', padding: '0 10px', }}>
+                      <style jsx>{`
                         h2 {
-                          flex: 1;
-                          text-align: center;
-                          margin-left: 24px;
-                          margin-right: 24px;
-                          color: white;
-                          white-space: nowrap;
-                          overflow: hidden;
-                          margin-top:3px
-                        }
+                          flex: 1; text-align: center;margin-left: 24px; margin-right: 24px;color: white;white-space: nowrap;overflow: hidden;margin-top:3px}
                         .icon {
                           font-size: 1em; /* Default size */
                         }
-
                         h2 span {
                           color: #2dba4e;
                         }
-
                         /* Media Query for screens with max-width of 600px */
                         @media (max-width: 600px) {
                           h2 {
                             font-size: 0.7em; /* Adjust the font size as needed */
                           }
                           .icon {
-                            font-size: 0.7em; /* Adjust icon size similarly */
-                            margin-bottom:-10px
+                            font-size: 0.7em; margin-bottom:-10px
                           }
                         }
                       `}</style>
@@ -1397,23 +1232,10 @@ if (user){
                               <DoubleRightOutlined onClick={handleChatBackButtonClick} /></Tooltip>
                               )}
                               </div>
-                              <div style={{ 
-                                  width: '90%', 
-                                  display: 'flex', 
-                                  justifyContent: 'center', // Center the content in this div
-                                
-                              }}>
-                                  <footer style={{
-                                      width: '100%',
-                                      color: 'white', // Example background color
-                                      textAlign: 'center',
-                                      borderColor:'white'
-                                    }}>
+                              <div style={{ width: '90%', display: 'flex', justifyContent: 'center',}}>
+                                  <footer style={{ width: '100%',color: 'white', textAlign: 'center',borderColor:'white'}}>
                                       <select
-                                        style={{
-                                          backgroundColor:'#21262d',
-                                          borderColor:'white'
-                                        }}
+                                        style={{backgroundColor:'#21262d',borderColor:'white'}}
                                         defaultValue="option1"
                                         onChange={(e) => console.log(e.target.value)} // Handle change
                                         size="1" // Default size, it will expand to show all options when clicked
@@ -1471,7 +1293,7 @@ if (user){
                 }
             </div> 
             ]}>
-                {deleteChatMessag}
+            {deleteChatMessag}
         </Modal>
 
         <Modal
@@ -1535,9 +1357,6 @@ if (user){
     } else if (error) {
         return <p>Error: {error.message}</p>;
     } else {
-      console.log('here')
-        // If user is null and there's no error, redirect to login
-        //
         return <Guest />
     }
 }
@@ -1574,41 +1393,3 @@ export const getServerSideProps = async (context) => {
         };
     }
 }
-
-//chat details
-//<Button style={{ backgroundColor: '#fa7970', marginLeft:'15px',marginRight:'15px', border:'black' }} onClick={showModal}>Manage</Button>
-/**
- Chat - 
-                          <span style={{ color: '#2dba4e' }}> 
-                              {chatArray.length > 0 && currentChat.index !== null && chatArray[currentChat.index] 
-                                  ? ' ' + chatArray[currentChat.index].chatName.slice(0, 30) + ' ' 
-                                  : ' Start asking '}
-                          </span>              |
- */
-
-
-/**
- * <h2  style={{alignSelf: 'center'}}><a className={styles.hoverPro} onClick={()=>setIsUpgradeOpen(true)}>  Try Pro </a></h2>
- the code for selected doc 
- <h2>
-                                  Selected Resource - 
-                                  <span>
-                                    {typeArray.length > 0 && typeArray[currentDocuIndex] ? ' '+typeArray[currentDocuIndex]+' ' : ' Upload any document '} 
-                                  </span> 
-                                </h2>
- */
-/**
- * 
- * 
- <Tooltip placement="bottom" title={rocket}>
-                  <RocketOutlined 
-                  onClick={assistantsMode}
-                  style={{
-                        marginRight: '35px',
-                        cursor: 'pointer',
-                        color: isAssitantsMode ?'red' : 'inherit',
-                      }} />
-                  </Tooltip>
- */
-
-                            
