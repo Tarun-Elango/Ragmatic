@@ -341,7 +341,35 @@ const toggleCalculator = () => {
     return <div dangerouslySetInnerHTML={{ __html: text }}></div>;
   };
   
+  const [currentTierValue, setCurrentTierValue]= useState('')
   
+  const getTierInfo = async()=>{
+    const getUserCreditBody = {
+      auth0id: user.sub
+    }
+
+    try{
+      const responseUserTier = await fetch(`/api/mongo/users`, {
+        method: 'POST',
+        headers: {
+            'Content-Type':'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(getUserCreditBody)
+      })
+      if (!responseUserTier.ok) {
+        console.log("error calling users endpoint: ",responseUserTier.status)
+        //throw new Error(`HTTP error! status: ${responseUserTier.status}`);
+      }
+      const tierResponse = await responseUserTier.json()
+      setCurrentTierValue(tierResponse)
+    }catch(error){
+      console.log("could not upate users tier info", error)
+    }
+  }
+
+  useEffect(() => {    
+  }, [currentTierValue]);
 
   const postAiSupabase =async (responseMessage,id)=>{
     // send to supabase the user query and the response. for vector storage
@@ -351,7 +379,8 @@ const toggleCalculator = () => {
    // call the api with chatid and combined string
    const storePastMessage={
      chatId:id,
-     combinedMessage:combinedString
+     combinedMessage:combinedString,
+     auth0id:user.sub
    }
    try {
      const responseSupaStore = await fetch(`/api/chatVector`, {
@@ -368,6 +397,17 @@ const toggleCalculator = () => {
      const checkIfMessageStored =  await responseSupaStore.json();
    //console.log(checkIfMessageStored)// has the most relevant past message
    } catch (error) {console.log('could not receive past message')}
+
+
+   // call mongo for updated credits
+   // dont call if the currentTierValue is string "paid"
+
+   if (currentTierValue !== "paid") {
+    // Code to execute if currentTierValue is not "paid"
+    getTierInfo()
+  }
+
+
  }
 
   const [isAiLoading, setIsAiLoading]= useState(false)
@@ -826,6 +866,8 @@ const toggleCalculator = () => {
     if (user?.sub) {
       fetchUserDocuments();
       setSelectedDoc([])
+      // fetch the user credit
+      getTierInfo()
     }
   }, [user]);
 
@@ -1138,7 +1180,7 @@ if (user){
                           <InfoCircleOutlined style={{marginLeft:'15px'}} onClick={()=>setIsAboutOpen(true)}/>
                       </Tooltip>
                   </h3>
-                  <Tooltip placement="right" title={"1 Credit = 1 Query, Upgrade for unlimited credits"}><h3 style={{marginRight:'15px', color:'orange'}}><em>20 Credits left</em></h3></Tooltip>
+                  {currentTierValue === "paid" ? (""):(<Tooltip placement="right" title={"1 Credit = 1 Query, Upgrade for unlimited credits"}><h3 style={{marginRight:'15px', color:'orange'}}><em>{currentTierValue} Credits left</em></h3></Tooltip>)}
                   <SettingOutlined />
                   <Tooltip placement="bottom" title={newUpload}><Button onClick={()=>setIsUploadOpen(true)} style={{ backgroundColor: '#fa7970',marginLeft:'15px', border:'black'}}>New Upload</Button></Tooltip>
                   <Menu onClick={onClick}  mode="horizontal" items={accounts} style={{backgroundColor:'transparent', color:'white', marginRight:'15px'}} selectedKeys={[null]}/>
@@ -1343,7 +1385,7 @@ export const getServerSideProps = async (context) => {
         // Extract the data from the response
         const data = response.data;
         const accessToken = data.access_token
-        // console.log(accessToken)
+        //console.log(accessToken)
         // Pass data to the page via props
         return { props: { accessToken } };
     } catch (error) {

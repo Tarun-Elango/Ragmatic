@@ -19,9 +19,13 @@ const userSchema = new Schema (
           type: String,  // Change the type to String
           default: () => new Date().toISOString(), // Use a function to set the default value to the current date as a string
         },
-        messageId: {
-          type: Schema.Types.ObjectId,
-          ref: "Message",
+        updatedAt: {
+          type: String,
+          default: () => new Date().toISOString(),
+        },
+        tier: {
+          type: String,
+          required: true
         },
       },
     {

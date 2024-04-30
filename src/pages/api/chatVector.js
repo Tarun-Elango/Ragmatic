@@ -1,9 +1,12 @@
 const { createClient } = require('@supabase/supabase-js');
 import { middleware } from "../../middleware/middleware";
 import OpenAI from 'openai';
+import connectDB from '../../helper/mongodb'
+import User from '../../models/User';
 const openaio = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
+connectDB();
 function dotProduct(vec1, vec2) {
     let product = 0;
     for (let i = 0; i < vec1.length; i++) {
@@ -64,6 +67,27 @@ async function fetchRowsByChatId(chatId) {
         return null; // Or handle the error as needed
     }
 }
+
+function adjustTier(tierString) {
+    // Convert the string to an integer
+    let tierInt = parseInt(tierString, 10);
+
+    // Check if the conversion is NaN or the value is not within the allowed range
+    if (isNaN(tierInt) || tierInt < 0 || tierInt > 20) {
+        //throw new Error('Tier value is invalid. It must be a number between 0 and 20.');
+        console.log('user  tier hasnt changed: ', tierString)
+        return tierString
+
+    } else{
+        // Subtract 1 from the tier, but do not let it go below 0
+        tierInt = Math.max(0, tierInt - 1);
+        console.log('user new tier: ', tierInt)
+        // Return the adjusted tier
+        return tierInt;
+    }
+}
+
+
 export default async function handler(req, res) {
 
     const result = await middleware(req);
@@ -71,7 +95,7 @@ export default async function handler(req, res) {
     if (!result.success) {
       res.status(400).json({ success: false, message: result.message });
     } else {
-        const { chatId, userQuery, combinedMessage } = req.body;
+        const { chatId, userQuery, combinedMessage, auth0id } = req.body;
         // const generateEmbedding = await pipeline('feature-extraction', 'Supabase/gte-small');
         
             // Check if the request method is POST
@@ -90,7 +114,7 @@ export default async function handler(req, res) {
         // const data = response.data;
         // const accessToken = data.access_token // this has the accesstoken
 
-            //////////////////////////// Handle request with just a chat ID, get the closest previous chat
+            //////////////////////////// Handle request with just a userquery and chatid, get the closest previous chat
             if (!combinedMessage) {
                 let startTime = process.hrtime();
                 // get the embdedding of userquery
@@ -148,7 +172,7 @@ export default async function handler(req, res) {
                 }     
             }
         
-            ///////////////////////////////// Handle request with both a chat ID and a message, upload most reecent user given chat
+            ///////////////////////////////// Handle request with both a chat ID and a combinedmessage, upload most reecent user given chat
             if (!userQuery) {
             const valueTrimmed = combinedMessage.replace(/\s+/g, ' ').trim()
             let embeddingCombMess=[]
@@ -170,6 +194,29 @@ export default async function handler(req, res) {
             const response =  insertVectorEmbedding(chatId, combinedMessage, embeddingCombMess)
             .then(data => console.log('Inserted data:', data))
             .catch(err => console.error(err));
+
+
+            // after uploading most recent patch the user-tier to subtract 1 from it
+            if (auth0id){
+                const user = await User.findOne({ auth0id });
+                console.log(`updating tier value or user: ${auth0id}`)
+                if (!user) {
+                    console.log('user not present')
+                }
+            
+                if (!user.tier) {
+                    console.log('User tier is missing or undefined');
+                } else{
+                    let currentTier = user.tier
+                    let newTier = adjustTier(currentTier);
+                    
+                    user.tier = newTier;
+                    const updatedUser = await user.save();
+        
+                   console.log('new user tier: ', updatedUser) 
+                }
+            }
+
             return res.status(200).json({ message: `Stored the most recent user+ai message to vector db using combined message ${response}` });
             }
     
