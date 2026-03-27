@@ -1,6 +1,4 @@
-# JotDown
-Welcome to JotDown, your swift companion for uploading files and receiving AI-powered assistance. JotDown simplifies the process of managing and interpreting your files, providing you with smart insights and efficient organization. Whether it's sorting through documents, extracting key information, or just keeping your files in order, JotDown is here to help. Powered by the latest AI technology, JotDown ensures you're always a step ahead in managing your digital content.
-## Getting Started
+# Ragmatic 
 
 First, run the development server:
 
@@ -22,5 +20,5 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 commands to uplaod image to artifact registry
 
-gcloud builds submit --region=us-central1 --tag us-central1-docker.pkg.dev/jotdown-415202/ragmatic-base/newimagename:tag
-gcloud builds submit --region=us-central1 --tag us-central1-docker.pkg.dev/jotdown-415202/ragmatic-base/ragmatic:latest
+gcloud builds submit --region=us-central1 --tag us-central1-docker.pkg.dev/jotdown-xxx/ragmatic-base/newimagename:tag
+gcloud builds submit --region=us-central1 --tag us-central1-docker.pkg.dev/jotdown-xxx/ragmatic-base/ragmatic:latest
